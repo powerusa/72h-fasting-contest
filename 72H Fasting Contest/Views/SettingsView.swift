@@ -1,0 +1,113 @@
+import SwiftUI
+
+struct SettingsView: View {
+    @EnvironmentObject private var viewModel: AppViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var displayName = ""
+    @State private var countryFlag = ""
+    @State private var avatarColor = "#0A84FF"
+    @State private var remindersEnabled = true
+    @State private var interval = 6
+    @State private var milestonesEnabled = true
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Edit Profile") {
+                    TextField("Display name", text: $displayName)
+                    TextField("Country flag", text: $countryFlag)
+                    ColorPickerRow(selectedHex: $avatarColor)
+                    Button("Save Profile") {
+                        Task {
+                            await viewModel.saveProfile(displayName: displayName, avatarColorHex: avatarColor, countryFlag: countryFlag)
+                        }
+                    }
+                }
+
+                Section("Notification Settings") {
+                    Toggle("Enable reminders", isOn: $remindersEnabled)
+                    Stepper("Every \(interval) hours", value: $interval, in: 2...12, step: 2)
+                    Toggle("Milestone notifications", isOn: $milestonesEnabled)
+                    Button("Save Notifications") {
+                        viewModel.updateNotificationPreferences(
+                            NotificationPreferences(
+                                remindersEnabled: remindersEnabled,
+                                reminderIntervalHours: interval,
+                                milestoneNotificationsEnabled: milestonesEnabled
+                            )
+                        )
+                    }
+                }
+
+                Section("Premium One-Time Unlock") {
+                    HStack {
+                        Text(viewModel.profile?.premiumUnlocked == true ? "Unlocked" : "Private contests, badges, full history, advanced stats")
+                        Spacer()
+                        PremiumGateLabel()
+                    }
+                    Button("Unlock Premium Placeholder") {
+                        viewModel.unlockPremiumLocally()
+                    }
+                    Button("Restore Purchases") {
+                        Task { await viewModel.restorePurchases() }
+                    }
+                }
+
+                Section("Safety Disclaimer") {
+                    Text(safetyDisclaimer)
+                        .font(.footnote)
+                }
+
+                Section("App Rules") {
+                    Text("Only one active session is allowed. Start times cannot be edited after a challenge begins. Stopped sessions are locked. Leaderboards rank completed 72H sessions first, active sessions next, and stopped sessions below them.")
+                        .font(.footnote)
+                }
+
+                Section("Support") {
+                    Link("Privacy Policy Placeholder", destination: URL(string: "https://example.com/privacy")!)
+                    Link("Terms Placeholder", destination: URL(string: "https://example.com/terms")!)
+                    Link("Contact Support Placeholder", destination: URL(string: "mailto:support@example.com")!)
+                }
+            }
+            .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .onAppear {
+                displayName = viewModel.profile?.displayName ?? ""
+                countryFlag = viewModel.profile?.countryFlag ?? ""
+                avatarColor = viewModel.profile?.avatarColorHex ?? "#0A84FF"
+                remindersEnabled = viewModel.notificationPreferences.remindersEnabled
+                interval = viewModel.notificationPreferences.reminderIntervalHours
+                milestonesEnabled = viewModel.notificationPreferences.milestoneNotificationsEnabled
+            }
+        }
+    }
+}
+
+private struct ColorPickerRow: View {
+    @Binding var selectedHex: String
+    private let colors = ["#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#AF52DE", "#64D2FF"]
+
+    var body: some View {
+        HStack {
+            Text("Avatar color")
+            Spacer()
+            ForEach(colors, id: \.self) { hex in
+                Circle()
+                    .fill(Color(hex: hex))
+                    .frame(width: 28, height: 28)
+                    .overlay {
+                        if selectedHex == hex {
+                            Image(systemName: "checkmark")
+                                .font(.caption.bold())
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .onTapGesture { selectedHex = hex }
+            }
+        }
+    }
+}
