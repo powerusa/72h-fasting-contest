@@ -25,6 +25,7 @@
 		010000000000000000000010 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000010 /* StatsView.swift */; };
 		010000000000000000000011 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000011 /* HistoryView.swift */; };
 		010000000000000000000012 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000012 /* SettingsView.swift */; };
+		010000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000013 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,7 +56,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				010000000000000000000013 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				010000000000000000000013 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -383,6 +384,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72H Fasting Contest sends optional hydration, check-in, and milestone reminders.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -415,6 +417,7 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72H Fasting Contest sends optional hydration, check-in, and milestone reminders.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
