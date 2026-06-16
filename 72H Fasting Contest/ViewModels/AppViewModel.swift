@@ -140,6 +140,11 @@ final class AppViewModel: ObservableObject {
             errorMessage = "Review and accept the safety agreement first."
             return
         }
+        guard backend.isRemoteBackend else {
+            errorMessage = "Firebase is not connected. Add GoogleService-Info.plist to the app target before starting a synced fast."
+            updateFirebaseDebugInfo()
+            return
+        }
         guard activeSession == nil || activeSession?.status != .active else {
             errorMessage = "You already have an active 72H fast."
             return
@@ -400,7 +405,15 @@ final class AppViewModel: ObservableObject {
         leaderboardListenerConnected = false
         lastLeaderboardListenerError = nil
         updateFirebaseDebugInfo()
-        guard backend.isRemoteBackend, let userId = profile?.id ?? backend.currentUserId else {
+        guard backend.isRemoteBackend else {
+            lastLeaderboardListenerError = "Firebase is not connected. Add GoogleService-Info.plist to the app target."
+            updateFirebaseDebugInfo()
+            Task { await refreshLeaderboard() }
+            return
+        }
+        guard let userId = profile?.id ?? backend.currentUserId else {
+            lastLeaderboardListenerError = "Firebase Auth uid is missing."
+            updateFirebaseDebugInfo()
             Task { await refreshLeaderboard() }
             return
         }
