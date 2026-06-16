@@ -62,7 +62,7 @@ struct SettingsView: View {
                 }
 
                 Section("Support") {
-                    Link("Privacy Policy Placeholder", destination: URL(string: "https://example.com/privacy")!)
+                    Link("Privacy Policy", destination: URL(string: "https://github.com/powerusa/72h-fasting-contest/blob/main/PRIVACY_POLICY.md")!)
                     Link("Terms Placeholder", destination: URL(string: "https://example.com/terms")!)
                     Link("Contact Support Placeholder", destination: URL(string: "mailto:support@example.com")!)
                 }
