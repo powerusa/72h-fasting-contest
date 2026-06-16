@@ -57,7 +57,7 @@ struct SettingsView: View {
                 }
 
                 Section("App Rules") {
-                    Text("Only one active session is allowed. Start times cannot be edited after a challenge begins. Stopped sessions are locked. Leaderboards rank completed 72H sessions first, active sessions next, and stopped sessions below them.")
+                    Text("Only one active session is allowed. Start times cannot be edited after a challenge begins. The leaderboard shows only real users who are currently fasting.")
                         .font(.footnote)
                 }
 

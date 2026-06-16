@@ -17,8 +17,12 @@ struct LeaderboardView: View {
 
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(filteredEntries) { entry in
-                            LeaderboardRow(entry: entry)
+                        if filteredEntries.isEmpty {
+                            EmptyStateView(title: "No active fasters", message: "The leaderboard will fill when people start a 72H fast.", systemImage: "flame")
+                        } else {
+                            ForEach(filteredEntries) { entry in
+                                LeaderboardRow(entry: entry)
+                            }
                         }
                     }
                     .padding()
@@ -38,13 +42,9 @@ struct LeaderboardView: View {
     private var filteredEntries: [LeaderboardEntry] {
         switch tab {
         case .global:
-            return viewModel.leaderboard
-        case .thisWeek:
-            return viewModel.leaderboard.filter { $0.status != .stopped }
-        case .active:
             return viewModel.leaderboard.filter { $0.status == .active }
-        case .completed:
-            return viewModel.leaderboard.filter { $0.status == .completed }
+        case .thisWeek:
+            return viewModel.leaderboard.filter { $0.status == .active }
         }
     }
 }
@@ -52,8 +52,6 @@ struct LeaderboardView: View {
 enum LeaderboardTab: String, CaseIterable, Identifiable {
     case global = "Global"
     case thisWeek = "This Week"
-    case active = "Active"
-    case completed = "Completed"
 
     var id: String { rawValue }
 }

@@ -370,7 +370,7 @@ final class AppViewModel: ObservableObject {
 
     func updateLeaderboardScope(_ tab: LeaderboardTab) {
         switch tab {
-        case .global, .active, .completed:
+        case .global:
             leaderboardScope = .global
         case .thisWeek:
             leaderboardScope = .weekly

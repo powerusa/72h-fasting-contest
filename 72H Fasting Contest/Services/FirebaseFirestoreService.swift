@@ -270,9 +270,14 @@ final class FirebaseContestBackend: ContestBackend {
     func leaderboard(for contestId: String?, currentUser: UserProfile?, activeSession: FastingSession?, history: [FastingSession]) async -> [LeaderboardEntry] {
         do {
             guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
-            var query: Query = db.collection(sessions).limit(to: 100)
+            var query: Query = db.collection(sessions)
+                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
+                .limit(to: 100)
             if let contestId {
-                query = db.collection(sessions).whereField("contestId", isEqualTo: contestId).limit(to: 100)
+                query = db.collection(sessions)
+                    .whereField("contestId", isEqualTo: contestId)
+                    .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
+                    .limit(to: 100)
             }
             let snapshot = try await query.getDocuments()
             return rankedEntries(from: snapshot.documents, currentUserId: currentUser?.id)
@@ -290,14 +295,18 @@ final class FirebaseContestBackend: ContestBackend {
         let query: Query
         switch scope {
         case .global:
-            query = db.collection(sessions).limit(to: 100)
+            query = db.collection(sessions)
+                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
+                .limit(to: 100)
         case .weekly:
             query = db.collection(sessions)
+                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
                 .whereField("startTime", isGreaterThanOrEqualTo: Timestamp(date: Date.startOfCurrentWeek()))
                 .limit(to: 100)
         case .privateContest(let contestId):
             query = db.collection(sessions)
                 .whereField("contestId", isEqualTo: contestId)
+                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
                 .limit(to: 100)
         }
 
@@ -336,8 +345,9 @@ final class FirebaseContestBackend: ContestBackend {
             guard let userId = data["userId"] as? String else { return nil }
             let startTime = timestampDate(data["startTime"])
             let status = SessionStatus(firestoreValue: data["status"] as? String ?? "")
+            guard status == .active else { return nil }
             let storedElapsed = TimeInterval(data["elapsedSeconds"] as? Int ?? 0)
-            let liveElapsed = status == .active ? max(storedElapsed, Date().timeIntervalSince(startTime ?? Date())) : storedElapsed
+            let liveElapsed = max(storedElapsed, Date().timeIntervalSince(startTime ?? Date()))
 
             return LeaderboardEntry(
                 id: document.documentID,
@@ -370,19 +380,7 @@ final class FirebaseContestBackend: ContestBackend {
     }
 
     private func leaderboardSort(_ lhs: LeaderboardEntry, _ rhs: LeaderboardEntry) -> Bool {
-        if statusRank(lhs.status) != statusRank(rhs.status) {
-            return statusRank(lhs.status) > statusRank(rhs.status)
-        }
         return lhs.fastingSeconds > rhs.fastingSeconds
-    }
-
-    private func statusRank(_ status: SessionStatus) -> Int {
-        switch status {
-        case .completed: return 3
-        case .active: return 2
-        case .stopped: return 1
-        case .notStarted: return 0
-        }
     }
 
     private func profile(from data: [String: Any], id: String) -> UserProfile {

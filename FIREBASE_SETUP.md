@@ -69,8 +69,9 @@ Firestore may prompt you to create indexes the first time these queries run:
 
 - `fastingSessions`: `userId ==`, `createdAt desc`
 - `fastingSessions`: `userId ==`, `status ==`
-- `fastingSessions`: `contestId ==`
-- `fastingSessions`: `startTime >=`
+- `fastingSessions`: `status ==`
+- `fastingSessions`: `contestId ==`, `status ==`
+- `fastingSessions`: `status ==`, `startTime >=`
 - `contests`: `participantIds array-contains`
 - `contests`: `contestCode ==`
 - `badges`: `userId ==`
