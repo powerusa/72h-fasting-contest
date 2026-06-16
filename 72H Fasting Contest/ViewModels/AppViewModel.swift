@@ -150,19 +150,30 @@ final class AppViewModel: ObservableObject {
             return
         }
         guard var profile else { return }
-        if let authUserId = backend.currentUserId, profile.id != authUserId {
+        let authUserId: String
+        do {
+            authUserId = try await backend.signInAnonymouslyIfNeeded()
+        } catch {
+            errorMessage = "Could not sign in to Firebase. \(friendlyMessage(for: error))"
+            updateFirebaseDebugInfo()
+            return
+        }
+
+        if profile.id != authUserId {
             profile.id = authUserId
-            self.profile = profile
-            do {
-                try await backend.saveUser(profile)
-            } catch {
-                errorMessage = "Could not sync your profile to Firebase. Try again."
-                updateFirebaseDebugInfo()
-                return
-            }
+        }
+
+        self.profile = profile
+        do {
+            try await backend.saveUser(profile)
+        } catch {
+            errorMessage = "Could not sync your profile to Firebase. \(friendlyMessage(for: error))"
             persist()
             updateFirebaseDebugInfo()
+            return
         }
+        persist()
+        updateFirebaseDebugInfo()
 
         let contest = contests.first(where: { $0.id == contestId })
 
@@ -495,7 +506,14 @@ final class AppViewModel: ObservableObject {
                 return "Internet connection is required for live contests and leaderboard sync."
             }
         }
-        return error.localizedDescription
+        let nsError = error as NSError
+        let details = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String
+            ?? nsError.userInfo[NSDebugDescriptionErrorKey] as? String
+            ?? nsError.userInfo[NSUnderlyingErrorKey].map { "\($0)" }
+        if let details, !details.isEmpty {
+            return "\(nsError.localizedDescription) [\(nsError.domain) \(nsError.code)] \(details)"
+        }
+        return "\(nsError.localizedDescription) [\(nsError.domain) \(nsError.code)]"
     }
 
     private func completedSuffixCount(in sessions: [FastingSession]) -> Int {

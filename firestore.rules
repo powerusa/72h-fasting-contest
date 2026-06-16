@@ -57,8 +57,8 @@ service cloud.firestore {
 
     function userProfileCreateIsValid(userId) {
       return userProfileFieldsAreValid(userId)
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
     }
 
     function userProfileUpdateIsValid(userId) {
@@ -66,7 +66,7 @@ service cloud.firestore {
         && resource.data.id == request.auth.uid
         && request.resource.data.id == resource.data.id
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedAt is timestamp
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'displayName',
           'avatarColor',
@@ -142,9 +142,9 @@ service cloud.firestore {
       return sessionBaseFieldsAreValid(sessionId)
         && request.resource.data.status == 'active'
         && request.resource.data.elapsedSeconds == 0
-        && request.resource.data.startTime == request.time
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.startTime is timestamp
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
     }
 
     function sessionUpdateIsValid(sessionId) {
@@ -153,7 +153,7 @@ service cloud.firestore {
         && request.resource.data.userId == resource.data.userId
         && request.resource.data.startTime == resource.data.startTime
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedAt is timestamp
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'status',
           'elapsedSeconds',
