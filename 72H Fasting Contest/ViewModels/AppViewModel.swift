@@ -507,13 +507,11 @@ final class AppViewModel: ObservableObject {
             }
         }
         let nsError = error as NSError
-        let details = nsError.userInfo[NSLocalizedFailureReasonErrorKey] as? String
-            ?? nsError.userInfo[NSDebugDescriptionErrorKey] as? String
-            ?? nsError.userInfo[NSUnderlyingErrorKey].map { "\($0)" }
-        if let details, !details.isEmpty {
-            return "\(nsError.localizedDescription) [\(nsError.domain) \(nsError.code)] \(details)"
+        let rawDescription = "\(nsError.localizedDescription) \(nsError.userInfo)"
+        if rawDescription.contains("CONFIGURATION_NOT_FOUND") {
+            return "Firebase Authentication is not enabled yet. Enable Anonymous sign-in in Firebase Console."
         }
-        return "\(nsError.localizedDescription) [\(nsError.domain) \(nsError.code)]"
+        return nsError.localizedDescription
     }
 
     private func completedSuffixCount(in sessions: [FastingSession]) -> Int {
