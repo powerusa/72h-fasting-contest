@@ -31,6 +31,7 @@
 		010000000000000000000017 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000002 /* FirebaseCore */; };
 		010000000000000000000018 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000003 /* FirebaseAuth */; };
 		010000000000000000000019 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000004 /* FirebaseFirestore */; };
+		01000000000000000000001A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000018 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,7 @@
 		020000000000000000000015 /* FirebaseBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrap.swift; sourceTree = "<group>"; };
 		020000000000000000000016 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		020000000000000000000017 /* FirebaseFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseFirestoreService.swift; sourceTree = "<group>"; };
+		020000000000000000000018 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				020000000000000000000013 /* Assets.xcassets */,
+				020000000000000000000018 /* GoogleService-Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -239,6 +242,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				010000000000000000000013 /* Assets.xcassets in Resources */,
+				01000000000000000000001A /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
