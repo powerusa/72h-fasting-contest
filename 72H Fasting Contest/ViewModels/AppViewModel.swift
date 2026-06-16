@@ -511,6 +511,9 @@ final class AppViewModel: ObservableObject {
         if rawDescription.contains("CONFIGURATION_NOT_FOUND") {
             return "Firebase Authentication is not enabled yet. Enable Anonymous sign-in in Firebase Console."
         }
+        if rawDescription.localizedCaseInsensitiveContains("requires an index") {
+            return "Firebase is preparing the leaderboard data. Try again in a moment."
+        }
         return nsError.localizedDescription
     }
 

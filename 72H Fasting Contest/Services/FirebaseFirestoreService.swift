@@ -57,10 +57,11 @@ final class FirebaseContestBackend: ContestBackend {
         guard FirebaseBootstrap.isConfigured else { throw BackendError.firebaseNotConfigured }
         let snapshot = try await db.collection(sessions)
             .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
             .limit(to: 100)
             .getDocuments()
-        return snapshot.documents.compactMap { session(from: $0.data(), id: $0.documentID) }
+        return snapshot.documents
+            .compactMap { session(from: $0.data(), id: $0.documentID) }
+            .sorted { $0.createdAt > $1.createdAt }
     }
 
     func fetchUserBadges(userId: String) async throws -> [UnlockedBadge] {
