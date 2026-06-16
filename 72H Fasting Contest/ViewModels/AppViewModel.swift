@@ -172,6 +172,7 @@ final class AppViewModel: ObservableObject {
         haptic(.medium)
         notificationManager.scheduleFastNotifications(from: session.startTime, preferences: notificationPreferences)
         persist()
+        startLeaderboardListener(scope: leaderboardScope)
         await refreshLeaderboard()
         updateFirebaseDebugInfo()
     }
@@ -362,6 +363,13 @@ final class AppViewModel: ObservableObject {
             if let remoteActiveSession {
                 activeSession = remoteActiveSession
                 reachedMilestones = Set(Milestone.all.filter { remoteActiveSession.elapsedSeconds >= TimeInterval($0.hour * 3600) }.map(\.hour))
+            } else if let localActiveSession = activeSession,
+                      localActiveSession.status == .active,
+                      let profile {
+                let migratedSession = try await backend.startFastingSession(profile: profile, contest: nil)
+                activeSession = migratedSession
+                reachedMilestones = []
+                print("Firebase migrated local active fast to Firestore:", migratedSession.id)
             }
             history = remoteSessions.filter { $0.status != .active }
             unlockedBadges = try await backend.fetchUserBadges(userId: userId)
