@@ -1,0 +1,80 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validUserProfile() {
+      return request.resource.data.id == request.auth.uid
+        && request.resource.data.displayName is string
+        && request.resource.data.avatarColor is string
+        && request.resource.data.countryFlag is string
+        && request.resource.data.premiumUnlocked == true;
+    }
+
+    function validSessionOwner() {
+      return request.resource.data.userId == request.auth.uid;
+    }
+
+    function validContestMember() {
+      return signedIn()
+        && request.auth.uid in request.resource.data.participantIds;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(userId) && validUserProfile();
+      allow delete: if false;
+    }
+
+    match /fastingSessions/{sessionId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && validSessionOwner()
+        && request.resource.data.status == 'active'
+        && request.resource.data.startTime == request.time
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.startTime == resource.data.startTime
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.status in ['active', 'stopped', 'completed'];
+      allow delete: if false;
+    }
+
+    match /contests/{contestId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.creatorUserId == request.auth.uid
+        && request.auth.uid in request.resource.data.participantIds
+        && request.resource.data.contestCode is string
+        && request.resource.data.isPrivate == true
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if signedIn()
+        && request.resource.data.creatorUserId == resource.data.creatorUserId
+        && request.resource.data.contestCode == resource.data.contestCode
+        && request.resource.data.isPrivate == resource.data.isPrivate
+        && request.resource.data.updatedAt == request.time
+        && request.auth.uid in request.resource.data.participantIds;
+      allow delete: if false;
+    }
+
+    match /badges/{badgeId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.unlockedAt == request.time;
+      allow delete: if false;
+    }
+  }
+}

@@ -28,6 +28,24 @@ enum SessionStatus: String, Codable, CaseIterable, Identifiable {
         case .stopped: return .red
         }
     }
+
+    var firestoreValue: String {
+        switch self {
+        case .notStarted: return "notStarted"
+        case .active: return "active"
+        case .completed: return "completed"
+        case .stopped: return "stopped"
+        }
+    }
+
+    init(firestoreValue: String) {
+        switch firestoreValue {
+        case "active": self = .active
+        case "completed": self = .completed
+        case "stopped": self = .stopped
+        default: self = .notStarted
+        }
+    }
 }
 
 enum ContestType: String, Codable, CaseIterable, Identifiable {
@@ -160,6 +178,13 @@ struct LeaderboardEntry: Identifiable, Equatable {
     let fastingSeconds: TimeInterval
     let status: SessionStatus
     let isCurrentUser: Bool
+    var contestId: String? = nil
+}
+
+enum LeaderboardScope: Equatable {
+    case global
+    case weekly
+    case privateContest(String)
 }
 
 struct NotificationPreferences: Codable, Equatable {

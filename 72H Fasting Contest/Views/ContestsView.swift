@@ -45,8 +45,10 @@ struct ContestsView: View {
                 .textInputAutocapitalization(.characters)
                 .textFieldStyle(.roundedBorder)
             PrimaryButton(title: "Join Contest", systemImage: "arrow.right.circle.fill", tint: .green) {
-                viewModel.joinContest(code: code)
-                code = ""
+                Task {
+                    await viewModel.joinContest(code: code)
+                    code = ""
+                }
             }
         }
         .padding()

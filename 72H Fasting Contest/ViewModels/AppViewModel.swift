@@ -4,7 +4,7 @@ import UIKit
 
 @MainActor
 final class AppViewModel: ObservableObject {
-    static let challengeDuration: TimeInterval = 72 * 3600
+    nonisolated static let challengeDuration: TimeInterval = 72 * 3600
 
     @Published var hasCompletedOnboarding = false
     @Published var hasAcceptedSafety = false
@@ -19,9 +19,16 @@ final class AppViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let store = PersistenceStore()
-    private let backend: ContestBackend = OfflineContestBackend()
+    private let remoteBackend = FirebaseContestBackend()
+    private let offlineBackend = OfflineContestBackend()
     private let notificationManager = NotificationManager()
     private var reachedMilestones: Set<Int> = []
+    private var leaderboardListener: BackendListener?
+    private var leaderboardScope: LeaderboardScope = .global
+
+    private var backend: ContestBackend {
+        FirebaseBootstrap.isConfigured ? remoteBackend : offlineBackend
+    }
 
     var elapsedSeconds: TimeInterval {
         activeSession?.elapsedSeconds ?? 0
@@ -73,7 +80,7 @@ final class AppViewModel: ObservableObject {
         unlockedBadges = snapshot.unlockedBadges
         notificationPreferences = snapshot.notificationPreferences
         recalculateActiveSession()
-        await refreshLeaderboard()
+        await syncRemoteStateIfAvailable()
         await notificationManager.requestAuthorizationIfNeeded()
         persist()
     }
@@ -90,8 +97,17 @@ final class AppViewModel: ObservableObject {
             return
         }
 
+        let userId: String
+        if let currentUserId = backend.currentUserId {
+            userId = currentUserId
+        } else if backend.isRemoteBackend, let signedInId = try? await backend.signInAnonymouslyIfNeeded() {
+            userId = signedInId
+        } else {
+            userId = self.profile?.id ?? "anon-\(UUID().uuidString.prefix(8))"
+        }
+
         let profile = UserProfile(
-            id: self.profile?.id ?? "anon-\(UUID().uuidString.prefix(8))",
+            id: userId,
             displayName: cleanName,
             avatarColorHex: avatarColorHex,
             countryFlag: countryFlag.isEmpty ? "🏁" : countryFlag,
@@ -105,6 +121,7 @@ final class AppViewModel: ObservableObject {
             errorMessage = "Profile saved locally. Backend sync will retry later."
         }
         persist()
+        startLeaderboardListener(scope: leaderboardScope)
         await refreshLeaderboard()
     }
 
@@ -124,95 +141,78 @@ final class AppViewModel: ObservableObject {
         }
         guard let profile else { return }
 
-        let now = await backend.serverDate()
         let contest = contests.first(where: { $0.id == contestId })
-        let session = FastingSession(
-            id: UUID().uuidString,
-            userId: profile.id,
-            contestId: contestId,
-            startTime: now,
-            endTime: nil,
-            elapsedSeconds: 0,
-            status: .active,
-            createdAt: now,
-            updatedAt: now,
-            contestType: contest?.isPrivate == true ? .private : .global,
-            rank: nil
-        )
+
+        let session: FastingSession
+        do {
+            session = try await backend.startFastingSession(profile: profile, contest: contest)
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return
+        }
 
         activeSession = session
         reachedMilestones = []
         unlock(.firstStart)
         haptic(.medium)
-        notificationManager.scheduleFastNotifications(from: now, preferences: notificationPreferences)
-        try? await backend.saveSession(session)
+        notificationManager.scheduleFastNotifications(from: session.startTime, preferences: notificationPreferences)
         persist()
         await refreshLeaderboard()
     }
 
     func stopFast() async {
-        guard var session = activeSession, session.status == .active else { return }
-        session.elapsedSeconds = Date().timeIntervalSince(session.startTime)
-        session.endTime = Date()
-        session.updatedAt = Date()
-        session.status = .stopped
+        guard let session = activeSession, session.status == .active else { return }
+        let stoppedSession: FastingSession
+        do {
+            stoppedSession = try await backend.stopFastingSession(session)
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return
+        }
+
         activeSession = nil
-        history.insert(session, at: 0)
+        history.insert(stoppedSession, at: 0)
         notificationManager.cancelFastNotifications()
         haptic(.heavy)
-        try? await backend.saveSession(session)
         persist()
         await refreshLeaderboard()
     }
 
     func tick() {
         recalculateActiveSession()
-        Task { await refreshLeaderboard() }
+        if !backend.isRemoteBackend {
+            Task { await refreshLeaderboard() }
+        }
     }
 
     func createPrivateContest(title: String) async {
         guard let profile else { return }
 
-        let contest = Contest(
-            id: UUID().uuidString,
-            contestCode: String(UUID().uuidString.prefix(6)).uppercased(),
-            creatorUserId: profile.id,
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Private 72H Contest" : title,
-            createdAt: Date(),
-            participantIds: [profile.id],
-            sessionIds: [],
-            isPrivate: true
-        )
-        contests.insert(contest, at: 0)
-        try? await backend.saveContest(contest)
-        persist()
+        do {
+            let contest = try await backend.createPrivateContest(title: title, creatorUserId: profile.id)
+            contests.insert(contest, at: 0)
+            persist()
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+        }
     }
 
-    func joinContest(code: String) {
+    func joinContest(code: String) async {
         guard let profile else { return }
         let cleanCode = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !cleanCode.isEmpty else { return }
 
-        if let index = contests.firstIndex(where: { $0.contestCode == cleanCode }) {
-            if !contests[index].participantIds.contains(profile.id) {
-                contests[index].participantIds.append(profile.id)
+        do {
+            let contest = try await backend.joinPrivateContest(contestCode: cleanCode, userId: profile.id)
+            if let index = contests.firstIndex(where: { $0.id == contest.id }) {
+                contests[index] = contest
+            } else {
+                contests.insert(contest, at: 0)
             }
-        } else {
-            contests.insert(
-                Contest(
-                    id: UUID().uuidString,
-                    contestCode: cleanCode,
-                    creatorUserId: "friend",
-                    title: "Friend Contest",
-                    createdAt: Date(),
-                    participantIds: [profile.id],
-                    sessionIds: [],
-                    isPrivate: true
-                ),
-                at: 0
-            )
+            persist()
+        } catch {
+            errorMessage = friendlyMessage(for: error)
         }
-        persist()
     }
 
     func updateNotificationPreferences(_ preferences: NotificationPreferences) {
@@ -269,6 +269,10 @@ final class AppViewModel: ObservableObject {
                 unlock(.threeTimeFinisher)
             }
             haptic(.heavy)
+            Task {
+                _ = try? await backend.completeFastingSession(session)
+                await refreshLeaderboard()
+            }
         } else {
             activeSession = session
         }
@@ -306,7 +310,50 @@ final class AppViewModel: ObservableObject {
                 unlockedAt: Date()
             )
         )
+        Task {
+            try? await backend.unlockBadge(userId: profile.id, badgeType: badgeType)
+        }
         persist()
+    }
+
+    private func syncRemoteStateIfAvailable() async {
+        guard backend.isRemoteBackend else {
+            await refreshLeaderboard()
+            return
+        }
+
+        do {
+            let userId = try await backend.signInAnonymouslyIfNeeded()
+
+            if let remoteProfile = try await backend.fetchCurrentUserProfile(userId: userId) {
+                var unlockedProfile = remoteProfile
+                unlockedProfile.premiumUnlocked = true
+                profile = unlockedProfile
+            } else if var cachedProfile = profile {
+                cachedProfile.id = userId
+                cachedProfile.premiumUnlocked = true
+                profile = cachedProfile
+                try await backend.saveUser(cachedProfile)
+            }
+
+            let remoteSessions = try await backend.fetchUserSessions(userId: userId)
+            var remoteActiveSession = remoteSessions.first(where: { $0.status == .active })
+            if remoteActiveSession == nil {
+                remoteActiveSession = try await backend.fetchActiveSession(userId: userId)
+            }
+            if let remoteActiveSession {
+                activeSession = remoteActiveSession
+                reachedMilestones = Set(Milestone.all.filter { remoteActiveSession.elapsedSeconds >= TimeInterval($0.hour * 3600) }.map(\.hour))
+            }
+            history = remoteSessions.filter { $0.status != .active }
+            unlockedBadges = try await backend.fetchUserBadges(userId: userId)
+            contests = try await backend.fetchUserContests(userId: userId)
+            recalculateActiveSession()
+            startLeaderboardListener(scope: leaderboardScope)
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            await refreshLeaderboard()
+        }
     }
 
     private func refreshLeaderboard() async {
@@ -319,6 +366,62 @@ final class AppViewModel: ObservableObject {
         if let rank = leaderboard.first(where: \.isCurrentUser)?.rank, rank <= 10 {
             unlock(.top10)
         }
+    }
+
+    func updateLeaderboardScope(_ tab: LeaderboardTab) {
+        switch tab {
+        case .global, .active, .completed:
+            leaderboardScope = .global
+        case .thisWeek:
+            leaderboardScope = .weekly
+        }
+        startLeaderboardListener(scope: leaderboardScope)
+    }
+
+    private func startLeaderboardListener(scope: LeaderboardScope) {
+        leaderboardListener?.remove()
+        guard backend.isRemoteBackend, let userId = profile?.id ?? backend.currentUserId else {
+            Task { await refreshLeaderboard() }
+            return
+        }
+
+        leaderboardListener = backend.listenToLeaderboard(
+            scope: scope,
+            currentUserId: userId,
+            onChange: { [weak self] entries in
+                Task { @MainActor in
+                    self?.leaderboard = entries
+                    if let rank = entries.first(where: \.isCurrentUser)?.rank, rank <= 10 {
+                        self?.unlock(.top10)
+                    }
+                }
+            },
+            onError: { [weak self] error in
+                Task { @MainActor in
+                    self?.errorMessage = self?.friendlyMessage(for: error)
+                }
+            }
+        )
+    }
+
+    private func friendlyMessage(for error: Error) -> String {
+        if let backendError = error as? BackendError {
+            switch backendError {
+            case .firebaseNotConfigured:
+                return "Firebase is not configured yet. Add GoogleService-Info.plist to the app target."
+            case .noAuthenticatedUser:
+                return "Could not sign in anonymously. Check Firebase Authentication."
+            case .activeSessionAlreadyExists:
+                return "You already have an active 72H fast on another device."
+            case .contestCodeNotFound:
+                return "Contest code not found. Check the FAST code and try again."
+            case .missingServerTimestamp:
+                return "Firebase did not return the official server start time yet. Try again."
+            case .noInternetForLeaderboard:
+                return "Internet connection is required for live contests and leaderboard sync."
+            }
+        }
+        return error.localizedDescription
     }
 
     private func completedSuffixCount(in sessions: [FastingSession]) -> Int {

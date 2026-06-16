@@ -2,13 +2,13 @@
 
 Last updated: June 16, 2026
 
-72H Fasting Contest is a paid App Store app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, reminders, and private contests.
+72H Fasting Contest is a paid App Store app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
 
 This app is for tracking, motivation, and friendly competition only. It does not provide medical advice, diagnosis, or treatment.
 
 ## Information We Collect
 
-The app may store the following information on your device:
+The app may store the following information on your device and, when online features are enabled, in Firebase services operated by Google:
 
 - Display name
 - Avatar color
@@ -18,8 +18,11 @@ The app may store the following information on your device:
 - Challenge status, history, milestones, badges, and stats
 - Private contest titles and invite codes that you create or join
 - Notification reminder preferences
+- Leaderboard entries, including display name, avatar color, country flag, status, and fasting time
 
 The app does not require email login, phone number login, or a password.
+
+The app uses Firebase Anonymous Authentication. This creates a random anonymous user identifier so the app can sync your leaderboard, contests, badges, and fasting sessions across devices without requiring an email address or password.
 
 ## Health and Medical Data
 
@@ -31,7 +34,7 @@ The app does not make medical claims and does not promise weight loss or health 
 
 ## Local Storage
 
-App data is stored locally on your device using Apple-provided storage technologies.
+App data is stored locally on your device using Apple-provided storage technologies. Local storage is used for cache, convenience, and offline display.
 
 If you delete the app, locally stored app data may be deleted from your device.
 
@@ -59,7 +62,9 @@ The app currently does not use third-party analytics SDKs.
 
 ## Backend Services
 
-The current app is designed to work with local/offline storage. If backend sync is added in a future version, the app may sync account, challenge, leaderboard, contest, badge, and stats data needed to provide those features. This privacy policy will be updated before any such data sync is enabled.
+The app uses Firebase Authentication and Cloud Firestore to provide real-time leaderboards, private contests, badge sync, and fasting session sync.
+
+Firebase may process technical information needed to provide these services, such as anonymous user identifiers, timestamps, app instance information, device/network information, and service logs. Firebase is provided by Google. You can learn more about Firebase privacy practices at https://firebase.google.com/support/privacy.
 
 ## Data Sharing
 
@@ -67,7 +72,7 @@ We do not sell your data.
 
 We do not share your data with advertisers or data brokers.
 
-Information you choose to show in leaderboard or contest features, such as display name, avatar color, country flag, status, and fasting time, may be visible to other participants if online leaderboard functionality is enabled in a future version.
+Information you choose to show in leaderboard or contest features, such as display name, avatar color, country flag, status, and fasting time, may be visible to other app users or private contest participants.
 
 ## Children
 

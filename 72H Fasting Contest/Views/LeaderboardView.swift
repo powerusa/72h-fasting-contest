@@ -26,6 +26,12 @@ struct LeaderboardView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Leaderboard")
+            .onAppear {
+                viewModel.updateLeaderboardScope(tab)
+            }
+            .onChange(of: tab) { _, newTab in
+                viewModel.updateLeaderboardScope(newTab)
+            }
         }
     }
 

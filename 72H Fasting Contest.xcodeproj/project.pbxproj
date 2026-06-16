@@ -25,6 +25,12 @@
 		010000000000000000000011 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000011 /* HistoryView.swift */; };
 		010000000000000000000012 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000012 /* SettingsView.swift */; };
 		010000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000013 /* Assets.xcassets */; };
+		010000000000000000000014 /* FirebaseBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000015 /* FirebaseBootstrap.swift */; };
+		010000000000000000000015 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000016 /* AuthService.swift */; };
+		010000000000000000000016 /* FirebaseFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000017 /* FirebaseFirestoreService.swift */; };
+		010000000000000000000017 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000002 /* FirebaseCore */; };
+		010000000000000000000018 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000003 /* FirebaseAuth */; };
+		010000000000000000000019 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B0000000000000000000004 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +53,9 @@
 		020000000000000000000012 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		020000000000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		020000000000000000000014 /* 72H Fasting Contest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "72H Fasting Contest.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		020000000000000000000015 /* FirebaseBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrap.swift; sourceTree = "<group>"; };
+		020000000000000000000016 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		020000000000000000000017 /* FirebaseFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseFirestoreService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +63,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				010000000000000000000017 /* FirebaseCore in Frameworks */,
+				010000000000000000000018 /* FirebaseAuth in Frameworks */,
+				010000000000000000000019 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -129,6 +141,9 @@
 				020000000000000000000003 /* PersistenceStore.swift */,
 				020000000000000000000004 /* BackendService.swift */,
 				020000000000000000000005 /* NotificationManager.swift */,
+				020000000000000000000015 /* FirebaseBootstrap.swift */,
+				020000000000000000000016 /* AuthService.swift */,
+				020000000000000000000017 /* FirebaseFirestoreService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -173,6 +188,11 @@
 			dependencies = (
 			);
 			name = "72H Fasting Contest";
+			packageProductDependencies = (
+				0B0000000000000000000002 /* FirebaseCore */,
+				0B0000000000000000000003 /* FirebaseAuth */,
+				0B0000000000000000000004 /* FirebaseFirestore */,
+			);
 			productName = "72H Fasting Contest";
 			productReference = 020000000000000000000014 /* 72H Fasting Contest.app */;
 			productType = "com.apple.product-type.application";
@@ -201,6 +221,9 @@
 				Base,
 			);
 			mainGroup = 040000000000000000000001;
+			packageReferences = (
+				0B0000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 04000000000000000000000A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -243,10 +266,42 @@
 				010000000000000000000010 /* StatsView.swift in Sources */,
 				010000000000000000000011 /* HistoryView.swift in Sources */,
 				010000000000000000000012 /* SettingsView.swift in Sources */,
+				010000000000000000000014 /* FirebaseBootstrap.swift in Sources */,
+				010000000000000000000015 /* AuthService.swift in Sources */,
+				010000000000000000000016 /* FirebaseFirestoreService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0B0000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0B0000000000000000000002 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B0000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		0B0000000000000000000003 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B0000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		0B0000000000000000000004 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0B0000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0A0000000000000000000001 /* Debug */ = {

@@ -1,8 +1,13 @@
 import SwiftUI
+import FirebaseCore
 
 @main
 struct FastingContestApp: App {
     @StateObject private var viewModel = AppViewModel()
+
+    init() {
+        FirebaseBootstrap.configureIfPossible()
+    }
 
     var body: some Scene {
         WindowGroup {
