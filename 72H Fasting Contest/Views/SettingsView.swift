@@ -61,6 +61,23 @@ struct SettingsView: View {
                         .font(.footnote)
                 }
 
+                Section("Firebase Debug") {
+                    DebugValueRow(title: "Configured", value: viewModel.firebaseDebugInfo.isConfigured ? "Yes" : "No")
+                    DebugValueRow(title: "App name", value: viewModel.firebaseDebugInfo.appName)
+                    DebugValueRow(title: "Project ID", value: viewModel.firebaseDebugInfo.projectID)
+                    DebugValueRow(title: "App ID", value: viewModel.firebaseDebugInfo.appID)
+                    DebugValueRow(title: "Bundle ID", value: viewModel.firebaseDebugInfo.bundleID)
+                    DebugValueRow(title: "Auth UID", value: viewModel.firebaseDebugInfo.authUID)
+                    DebugValueRow(title: "Display name", value: viewModel.firebaseDebugInfo.displayName)
+                    DebugValueRow(title: "Sessions loaded", value: "\(viewModel.firebaseDebugInfo.fastingSessionsLoaded)")
+                    DebugValueRow(title: "Query", value: viewModel.firebaseDebugInfo.leaderboardQueryType)
+                    DebugValueRow(title: "Listener", value: viewModel.firebaseDebugInfo.listenerConnected ? "Connected" : "Disconnected")
+                    DebugValueRow(title: "Last error", value: viewModel.firebaseDebugInfo.lastListenerError)
+                    Button("Refresh Firebase Debug") {
+                        viewModel.refreshFirebaseDebugInfo()
+                    }
+                }
+
                 Section("Support") {
                     Link("Privacy Policy", destination: URL(string: "https://github.com/powerusa/72h-fasting-contest/blob/main/PRIVACY_POLICY.md")!)
                     Link("Terms Placeholder", destination: URL(string: "https://example.com/terms")!)
@@ -82,6 +99,24 @@ struct SettingsView: View {
                 milestonesEnabled = viewModel.notificationPreferences.milestoneNotificationsEnabled
             }
         }
+    }
+}
+
+private struct DebugValueRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value.isEmpty ? "-" : value)
+                .font(.footnote.monospaced())
+                .textSelection(.enabled)
+                .lineLimit(3)
+        }
+        .padding(.vertical, 2)
     }
 }
 

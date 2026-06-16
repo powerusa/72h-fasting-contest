@@ -32,7 +32,7 @@ protocol ContestBackend {
     func joinPrivateContest(contestCode: String, userId: String) async throws -> Contest
     func unlockBadge(userId: String, badgeType: BadgeType) async throws
     func leaderboard(for contestId: String?, currentUser: UserProfile?, activeSession: FastingSession?, history: [FastingSession]) async -> [LeaderboardEntry]
-    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry]) -> Void, onError: @escaping (Error) -> Void) -> BackendListener?
+    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener?
 }
 
 struct OfflineContestBackend: ContestBackend {
@@ -136,7 +136,7 @@ struct OfflineContestBackend: ContestBackend {
         }
     }
 
-    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry]) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
         nil
     }
 

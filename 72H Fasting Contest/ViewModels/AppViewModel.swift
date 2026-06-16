@@ -17,6 +17,7 @@ final class AppViewModel: ObservableObject {
     @Published var notificationPreferences = NotificationPreferences.default
     @Published var celebrationMilestone: Milestone?
     @Published var errorMessage: String?
+    @Published var firebaseDebugInfo = FirebaseDebugInfo()
 
     private let store = PersistenceStore()
     private let remoteBackend = FirebaseContestBackend()
@@ -25,6 +26,9 @@ final class AppViewModel: ObservableObject {
     private var reachedMilestones: Set<Int> = []
     private var leaderboardListener: BackendListener?
     private var leaderboardScope: LeaderboardScope = .global
+    private var fastingSessionsLoadedFromFirestore = 0
+    private var lastLeaderboardListenerError: String?
+    private var leaderboardListenerConnected = false
 
     private var backend: ContestBackend {
         FirebaseBootstrap.isConfigured ? remoteBackend : offlineBackend
@@ -82,6 +86,7 @@ final class AppViewModel: ObservableObject {
         recalculateActiveSession()
         await syncRemoteStateIfAvailable()
         await notificationManager.requestAuthorizationIfNeeded()
+        updateFirebaseDebugInfo()
         persist()
     }
 
@@ -140,6 +145,11 @@ final class AppViewModel: ObservableObject {
             return
         }
         guard let profile else { return }
+        guard !backend.isRemoteBackend || profile.id == backend.currentUserId else {
+            errorMessage = "Firebase Auth uid does not match the local profile. Restart the app and try again."
+            updateFirebaseDebugInfo()
+            return
+        }
 
         let contest = contests.first(where: { $0.id == contestId })
 
@@ -158,6 +168,7 @@ final class AppViewModel: ObservableObject {
         notificationManager.scheduleFastNotifications(from: session.startTime, preferences: notificationPreferences)
         persist()
         await refreshLeaderboard()
+        updateFirebaseDebugInfo()
     }
 
     func stopFast() async {
@@ -324,6 +335,8 @@ final class AppViewModel: ObservableObject {
 
         do {
             let userId = try await backend.signInAnonymouslyIfNeeded()
+            print("Firebase bootstrap uid:", userId)
+            print("Firebase bootstrap bundleID:", Bundle.main.bundleIdentifier ?? "-")
 
             if let remoteProfile = try await backend.fetchCurrentUserProfile(userId: userId) {
                 var unlockedProfile = remoteProfile
@@ -350,8 +363,12 @@ final class AppViewModel: ObservableObject {
             contests = try await backend.fetchUserContests(userId: userId)
             recalculateActiveSession()
             startLeaderboardListener(scope: leaderboardScope)
+            updateFirebaseDebugInfo()
         } catch {
             errorMessage = friendlyMessage(for: error)
+            lastLeaderboardListenerError = friendlyMessage(for: error)
+            leaderboardListenerConnected = false
+            updateFirebaseDebugInfo()
             await refreshLeaderboard()
         }
     }
@@ -380,6 +397,9 @@ final class AppViewModel: ObservableObject {
 
     private func startLeaderboardListener(scope: LeaderboardScope) {
         leaderboardListener?.remove()
+        leaderboardListenerConnected = false
+        lastLeaderboardListenerError = nil
+        updateFirebaseDebugInfo()
         guard backend.isRemoteBackend, let userId = profile?.id ?? backend.currentUserId else {
             Task { await refreshLeaderboard() }
             return
@@ -388,19 +408,44 @@ final class AppViewModel: ObservableObject {
         leaderboardListener = backend.listenToLeaderboard(
             scope: scope,
             currentUserId: userId,
-            onChange: { [weak self] entries in
+            onChange: { [weak self] entries, loadedCount in
                 Task { @MainActor in
+                    self?.fastingSessionsLoadedFromFirestore = loadedCount
+                    self?.leaderboardListenerConnected = true
+                    self?.lastLeaderboardListenerError = nil
                     self?.leaderboard = entries
                     if let rank = entries.first(where: \.isCurrentUser)?.rank, rank <= 10 {
                         self?.unlock(.top10)
                     }
+                    self?.updateFirebaseDebugInfo()
                 }
             },
             onError: { [weak self] error in
                 Task { @MainActor in
-                    self?.errorMessage = self?.friendlyMessage(for: error)
+                    let message = self?.friendlyMessage(for: error) ?? error.localizedDescription
+                    self?.leaderboardListenerConnected = false
+                    self?.lastLeaderboardListenerError = message
+                    self?.errorMessage = message
+                    self?.updateFirebaseDebugInfo()
                 }
             }
+        )
+        leaderboardListenerConnected = leaderboardListener != nil
+        updateFirebaseDebugInfo()
+    }
+
+    func refreshFirebaseDebugInfo() {
+        updateFirebaseDebugInfo()
+    }
+
+    private func updateFirebaseDebugInfo() {
+        firebaseDebugInfo = FirebaseBootstrap.debugInfo(
+            authUID: backend.currentUserId,
+            displayName: profile?.displayName,
+            fastingSessionsLoaded: fastingSessionsLoadedFromFirestore,
+            lastListenerError: lastLeaderboardListenerError,
+            leaderboardQueryType: leaderboardScope.debugName,
+            listenerConnected: leaderboardListenerConnected
         )
     }
 

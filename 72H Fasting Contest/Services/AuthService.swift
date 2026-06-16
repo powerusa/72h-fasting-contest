@@ -39,10 +39,12 @@ final class AuthService {
         }
 
         if let userId = Auth.auth().currentUser?.uid {
+            print("Firebase Auth existing uid:", userId)
             return userId
         }
 
         let result = try await Auth.auth().signInAnonymously()
+        print("Firebase Auth anonymous sign-in uid:", result.user.uid)
         return result.user.uid
     }
 

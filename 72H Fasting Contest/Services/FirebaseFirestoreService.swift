@@ -142,6 +142,9 @@ final class FirebaseContestBackend: ContestBackend {
         }
 
         let doc = db.collection(sessions).document()
+        print("Firestore start session collection:", sessions)
+        print("Firestore start session document:", doc.documentID)
+        print("Firestore start session userId:", profile.id)
         var data: [String: Any] = [
             "id": doc.documentID,
             "userId": profile.id,
@@ -165,6 +168,7 @@ final class FirebaseContestBackend: ContestBackend {
         guard let session = session(from: snapshot.data() ?? data, id: doc.documentID) else {
             throw BackendError.missingServerTimestamp
         }
+        print("Firestore start session server startTime:", session.startTime)
         return session
     }
 
@@ -271,13 +275,9 @@ final class FirebaseContestBackend: ContestBackend {
         do {
             guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
             var query: Query = db.collection(sessions)
-                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
-                .limit(to: 100)
             if let contestId {
                 query = db.collection(sessions)
                     .whereField("contestId", isEqualTo: contestId)
-                    .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
-                    .limit(to: 100)
             }
             let snapshot = try await query.getDocuments()
             return rankedEntries(from: snapshot.documents, currentUserId: currentUser?.id)
@@ -286,40 +286,72 @@ final class FirebaseContestBackend: ContestBackend {
         }
     }
 
-    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry]) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+    func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
         guard FirebaseBootstrap.isConfigured else {
             onError(BackendError.noInternetForLeaderboard)
             return nil
         }
 
-        let query: Query
         switch scope {
         case .global:
-            query = db.collection(sessions)
-                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
-                .limit(to: 100)
+            return listenToGlobalLeaderboard(currentUserId: currentUserId, onChange: onChange, onError: onError)
         case .weekly:
-            query = db.collection(sessions)
-                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
-                .whereField("startTime", isGreaterThanOrEqualTo: Timestamp(date: Date.startOfCurrentWeek()))
-                .limit(to: 100)
+            return listenToWeeklyLeaderboard(currentUserId: currentUserId, onChange: onChange, onError: onError)
         case .privateContest(let contestId):
-            query = db.collection(sessions)
-                .whereField("contestId", isEqualTo: contestId)
-                .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
-                .limit(to: 100)
+            return listenToPrivateContestLeaderboard(contestId: contestId, currentUserId: currentUserId, onChange: onChange, onError: onError)
         }
+    }
 
+    func listenToGlobalLeaderboard(currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+        listenToLeaderboardQuery(
+            db.collection(sessions),
+            queryName: "global: fastingSessions",
+            currentUserId: currentUserId,
+            onChange: onChange,
+            onError: onError
+        )
+    }
+
+    func listenToWeeklyLeaderboard(currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+        listenToLeaderboardQuery(
+            db.collection(sessions),
+            queryName: "weekly: fastingSessions filtered in Swift",
+            currentUserId: currentUserId,
+            startDate: Date.startOfCurrentWeek(),
+            onChange: onChange,
+            onError: onError
+        )
+    }
+
+    func listenToPrivateContestLeaderboard(contestId: String, currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+        listenToLeaderboardQuery(
+            db.collection(sessions).whereField("contestId", isEqualTo: contestId),
+            queryName: "privateContest: \(contestId)",
+            currentUserId: currentUserId,
+            onChange: onChange,
+            onError: onError
+        )
+    }
+
+    private func listenToLeaderboardQuery(_ query: Query, queryName: String, currentUserId: String, startDate: Date? = nil, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
+        print("Firestore leaderboard listener connected:", queryName)
         let registration = query.addSnapshotListener { [weak self] snapshot, error in
             if let error {
+                print("Firestore leaderboard listener error:", error.localizedDescription)
                 onError(error)
                 return
             }
             guard let self, let documents = snapshot?.documents else {
-                onChange([])
+                onChange([], 0)
                 return
             }
-            onChange(self.rankedEntries(from: documents, currentUserId: currentUserId))
+            let filteredDocuments = documents.filter { document in
+                guard let startDate else { return true }
+                guard let startTime = self.timestampDate(document.data()["startTime"]) else { return false }
+                return startTime >= startDate
+            }
+            print("Firestore leaderboard documents loaded:", documents.count)
+            onChange(self.rankedEntries(from: filteredDocuments, currentUserId: currentUserId), documents.count)
         }
 
         return FirebaseListenerToken(registration)
@@ -343,11 +375,15 @@ final class FirebaseContestBackend: ContestBackend {
         let entries = documents.compactMap { document -> LeaderboardEntry? in
             let data = document.data()
             guard let userId = data["userId"] as? String else { return nil }
-            let startTime = timestampDate(data["startTime"])
+            guard let startTime = timestampDate(data["startTime"]) else {
+                print("Leaderboard session pending timestamp:", document.documentID, data["displayName"] as? String ?? "Contestant", data["status"] as? String ?? "-")
+                return nil
+            }
             let status = SessionStatus(firestoreValue: data["status"] as? String ?? "")
+            print("Leaderboard session:", document.documentID, data["displayName"] as? String ?? "Contestant", status.firestoreValue)
             guard status == .active else { return nil }
             let storedElapsed = TimeInterval(data["elapsedSeconds"] as? Int ?? 0)
-            let liveElapsed = max(storedElapsed, Date().timeIntervalSince(startTime ?? Date()))
+            let liveElapsed = max(storedElapsed, Date().timeIntervalSince(startTime))
 
             return LeaderboardEntry(
                 id: document.documentID,

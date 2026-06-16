@@ -185,6 +185,28 @@ enum LeaderboardScope: Equatable {
     case global
     case weekly
     case privateContest(String)
+
+    var debugName: String {
+        switch self {
+        case .global: return "global"
+        case .weekly: return "weekly"
+        case .privateContest(let contestId): return "privateContest(\(contestId))"
+        }
+    }
+}
+
+struct FirebaseDebugInfo: Equatable {
+    var isConfigured: Bool = false
+    var appName: String = "-"
+    var projectID: String = "-"
+    var appID: String = "-"
+    var bundleID: String = Bundle.main.bundleIdentifier ?? "-"
+    var authUID: String = "-"
+    var displayName: String = "-"
+    var fastingSessionsLoaded: Int = 0
+    var lastListenerError: String = "-"
+    var leaderboardQueryType: String = "offline"
+    var listenerConnected: Bool = false
 }
 
 struct NotificationPreferences: Codable, Equatable {
