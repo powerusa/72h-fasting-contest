@@ -7,3 +7,4 @@ xcuserdata/
 *.ipa
 *.dSYM.zip
 *.dSYM
+firebase-debug.log
