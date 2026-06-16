@@ -18,8 +18,6 @@ final class AppViewModel: ObservableObject {
     @Published var celebrationMilestone: Milestone?
     @Published var errorMessage: String?
 
-    let premiumStore = PremiumStore()
-
     private let store = PersistenceStore()
     private let backend: ContestBackend = OfflineContestBackend()
     private let notificationManager = NotificationManager()
@@ -64,7 +62,11 @@ final class AppViewModel: ObservableObject {
         let snapshot = await store.load()
         hasCompletedOnboarding = snapshot.hasCompletedOnboarding
         hasAcceptedSafety = snapshot.hasAcceptedSafety
-        profile = snapshot.profile
+        profile = snapshot.profile.map { existingProfile in
+            var unlockedProfile = existingProfile
+            unlockedProfile.premiumUnlocked = true
+            return unlockedProfile
+        }
         activeSession = snapshot.activeSession
         history = snapshot.history
         contests = snapshot.contests
@@ -72,8 +74,8 @@ final class AppViewModel: ObservableObject {
         notificationPreferences = snapshot.notificationPreferences
         recalculateActiveSession()
         await refreshLeaderboard()
-        await premiumStore.loadProduct()
         await notificationManager.requestAuthorizationIfNeeded()
+        persist()
     }
 
     func completeOnboarding() {
@@ -94,7 +96,7 @@ final class AppViewModel: ObservableObject {
             avatarColorHex: avatarColorHex,
             countryFlag: countryFlag.isEmpty ? "🏁" : countryFlag,
             createdAt: self.profile?.createdAt ?? Date(),
-            premiumUnlocked: self.profile?.premiumUnlocked ?? false
+            premiumUnlocked: true
         )
         self.profile = profile
         do {
@@ -170,10 +172,6 @@ final class AppViewModel: ObservableObject {
 
     func createPrivateContest(title: String) async {
         guard let profile else { return }
-        guard profile.premiumUnlocked else {
-            errorMessage = "Private contests are part of the one-time premium unlock."
-            return
-        }
 
         let contest = Contest(
             id: UUID().uuidString,
@@ -215,19 +213,6 @@ final class AppViewModel: ObservableObject {
             )
         }
         persist()
-    }
-
-    func unlockPremiumLocally() {
-        guard var profile else { return }
-        profile.premiumUnlocked = true
-        self.profile = profile
-        persist()
-    }
-
-    func restorePurchases() async {
-        if await premiumStore.restore() {
-            unlockPremiumLocally()
-        }
     }
 
     func updateNotificationPreferences(_ preferences: NotificationPreferences) {

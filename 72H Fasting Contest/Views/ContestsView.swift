@@ -22,14 +22,8 @@ struct ContestsView: View {
 
     private var createCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Create Private Contest", systemImage: "plus.circle.fill")
-                    .font(.headline)
-                Spacer()
-                if viewModel.profile?.premiumUnlocked != true {
-                    PremiumGateLabel()
-                }
-            }
+            Label("Create Private Contest", systemImage: "plus.circle.fill")
+                .font(.headline)
             TextField("Contest title", text: $title)
                 .textFieldStyle(.roundedBorder)
             PrimaryButton(title: "Create Contest", systemImage: "person.3.fill") {

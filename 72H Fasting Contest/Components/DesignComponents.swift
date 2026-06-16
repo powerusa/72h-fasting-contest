@@ -233,14 +233,3 @@ struct AvatarView: View {
             .background(Color(hex: hex).gradient, in: Circle())
     }
 }
-
-struct PremiumGateLabel: View {
-    var body: some View {
-        Label("Premium", systemImage: "sparkles")
-            .font(.caption.weight(.bold))
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(.yellow.opacity(0.18), in: Capsule())
-            .foregroundStyle(.orange)
-    }
-}

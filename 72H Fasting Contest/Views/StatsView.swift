@@ -36,14 +36,8 @@ struct BadgeGalleryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Badges")
-                    .font(.title3.bold())
-                Spacer()
-                if viewModel.profile?.premiumUnlocked != true {
-                    PremiumGateLabel()
-                }
-            }
+            Text("Badges")
+                .font(.title3.bold())
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(BadgeType.allCases) { badge in
                     BadgeCard(

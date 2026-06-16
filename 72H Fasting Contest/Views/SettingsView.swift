@@ -39,18 +39,16 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("Premium One-Time Unlock") {
+                Section("App Store Purchase") {
                     HStack {
-                        Text(viewModel.profile?.premiumUnlocked == true ? "Unlocked" : "Private contests, badges, full history, advanced stats")
+                        Text("All features unlocked")
                         Spacer()
-                        PremiumGateLabel()
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundStyle(.green)
                     }
-                    Button("Unlock Premium Placeholder") {
-                        viewModel.unlockPremiumLocally()
-                    }
-                    Button("Restore Purchases") {
-                        Task { await viewModel.restorePurchases() }
-                    }
+                    Text("This is a one-time paid app on the App Store. There are no subscriptions, no in-app purchases, and no locked feature tiers inside the app.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Safety Disclaimer") {

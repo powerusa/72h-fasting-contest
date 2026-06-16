@@ -12,7 +12,6 @@
 		010000000000000000000003 /* PersistenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000003 /* PersistenceStore.swift */; };
 		010000000000000000000004 /* BackendService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000004 /* BackendService.swift */; };
 		010000000000000000000005 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000005 /* NotificationManager.swift */; };
-		010000000000000000000006 /* PremiumStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000006 /* PremiumStore.swift */; };
 		010000000000000000000007 /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000007 /* AppViewModel.swift */; };
 		010000000000000000000008 /* DesignComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000008 /* DesignComponents.swift */; };
 		010000000000000000000009 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000009 /* OnboardingView.swift */; };
@@ -34,7 +33,6 @@
 		020000000000000000000003 /* PersistenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceStore.swift; sourceTree = "<group>"; };
 		020000000000000000000004 /* BackendService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendService.swift; sourceTree = "<group>"; };
 		020000000000000000000005 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
-		020000000000000000000006 /* PremiumStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumStore.swift; sourceTree = "<group>"; };
 		020000000000000000000007 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		020000000000000000000008 /* DesignComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignComponents.swift; sourceTree = "<group>"; };
 		020000000000000000000009 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -131,7 +129,6 @@
 				020000000000000000000003 /* PersistenceStore.swift */,
 				020000000000000000000004 /* BackendService.swift */,
 				020000000000000000000005 /* NotificationManager.swift */,
-				020000000000000000000006 /* PremiumStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -234,7 +231,6 @@
 				010000000000000000000003 /* PersistenceStore.swift in Sources */,
 				010000000000000000000004 /* BackendService.swift in Sources */,
 				010000000000000000000005 /* NotificationManager.swift in Sources */,
-				010000000000000000000006 /* PremiumStore.swift in Sources */,
 				010000000000000000000007 /* AppViewModel.swift in Sources */,
 				010000000000000000000008 /* DesignComponents.swift in Sources */,
 				010000000000000000000009 /* OnboardingView.swift in Sources */,
