@@ -149,11 +149,19 @@ final class AppViewModel: ObservableObject {
             errorMessage = "You already have an active 72H fast."
             return
         }
-        guard let profile else { return }
-        guard !backend.isRemoteBackend || profile.id == backend.currentUserId else {
-            errorMessage = "Firebase Auth uid does not match the local profile. Restart the app and try again."
+        guard var profile else { return }
+        if let authUserId = backend.currentUserId, profile.id != authUserId {
+            profile.id = authUserId
+            self.profile = profile
+            do {
+                try await backend.saveUser(profile)
+            } catch {
+                errorMessage = "Could not sync your profile to Firebase. Try again."
+                updateFirebaseDebugInfo()
+                return
+            }
+            persist()
             updateFirebaseDebugInfo()
-            return
         }
 
         let contest = contests.first(where: { $0.id == contestId })
