@@ -11,6 +11,7 @@ struct ChallengeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 18) {
+                    screenTitle
                     heroTimer
                     actionButtons
                     milestoneGrid
@@ -19,7 +20,8 @@ struct ChallengeView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("72Hour Fasting Leaderbord")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: openSettings.callAsFunction) {
@@ -46,6 +48,18 @@ struct ChallengeView: View {
                 Text(viewModel.errorMessage ?? "")
             }
         }
+    }
+
+    private var screenTitle: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("72Hour Fasting")
+            Text("Leaderbord")
+        }
+        .font(.system(size: 44, weight: .bold, design: .default))
+        .lineLimit(1)
+        .minimumScaleFactor(0.82)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 10)
     }
 
     private var heroTimer: some View {
