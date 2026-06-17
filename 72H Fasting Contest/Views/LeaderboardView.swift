@@ -42,28 +42,14 @@ struct LeaderboardView: View {
     }
 
     private var firebaseDebugBanner: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Label(viewModel.firebaseDebugInfo.listenerConnected ? "Firebase connected" : "Firebase disconnected", systemImage: viewModel.firebaseDebugInfo.listenerConnected ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(viewModel.firebaseDebugInfo.listenerConnected ? .green : .orange)
-                Spacer()
-                Text("\(viewModel.firebaseDebugInfo.fastingSessionsLoaded) docs")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-            Text("Project: \(viewModel.firebaseDebugInfo.projectID)")
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            if viewModel.firebaseDebugInfo.lastListenerError != "-" {
-                Text(viewModel.firebaseDebugInfo.lastListenerError)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
+        HStack {
+            Spacer()
+            Image(systemName: viewModel.firebaseDebugInfo.listenerConnected ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(viewModel.firebaseDebugInfo.listenerConnected ? .green : .orange)
+                .accessibilityLabel(viewModel.firebaseDebugInfo.listenerConnected ? "Firebase connected" : "Firebase disconnected")
         }
-        .padding(12)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(maxWidth: .infinity)
     }
 
     private var filteredEntries: [LeaderboardEntry] {
