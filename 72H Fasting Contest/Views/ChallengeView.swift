@@ -51,14 +51,15 @@ struct ChallengeView: View {
     }
 
     private var screenTitle: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(spacing: 2) {
             Text("72Hour Fasting")
             Text("Leaderbord")
         }
         .font(.system(size: 44, weight: .bold, design: .default))
         .lineLimit(1)
         .minimumScaleFactor(0.82)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity, alignment: .center)
         .padding(.top, 10)
     }
 
