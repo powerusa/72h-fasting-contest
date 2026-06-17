@@ -55,9 +55,9 @@ struct ChallengeView: View {
             Text("72Hour Fasting")
             Text("Leaderbord")
         }
-        .font(.system(size: 44, weight: .bold, design: .default))
+        .font(.system(size: 34, weight: .bold, design: .default))
         .lineLimit(1)
-        .minimumScaleFactor(0.82)
+        .minimumScaleFactor(0.9)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.top, 10)
