@@ -185,6 +185,7 @@
 				070000000000000000000001 /* Sources */,
 				030000000000000000000001 /* Frameworks */,
 				080000000000000000000001 /* Resources */,
+				0C0000000000000000000001 /* Generate Firebase Framework dSYMs */,
 			);
 			buildRules = (
 			);
@@ -247,6 +248,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0C0000000000000000000001 /* Generate Firebase Framework dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Generate Firebase Framework dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$ACTION\" != \"install\" ] || [ \"$PLATFORM_NAME\" != \"iphoneos\" ]; then\n  exit 0\nfi\n\nFRAMEWORKS_DIR=\"$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH\"\nDSYM_DIR=\"$DWARF_DSYM_FOLDER_PATH\"\nFRAMEWORKS=\"FirebaseFirestoreInternal absl grpc grpcpp openssl_grpc\"\n\nmkdir -p \"$DSYM_DIR\"\n\nfor FRAMEWORK in $FRAMEWORKS; do\n  BINARY=\"$FRAMEWORKS_DIR/$FRAMEWORK.framework/$FRAMEWORK\"\n  OUTPUT=\"$DSYM_DIR/$FRAMEWORK.framework.dSYM\"\n  if [ -f \"$BINARY\" ] && [ ! -d \"$OUTPUT\" ]; then\n    echo \"Generating dSYM for $FRAMEWORK.framework\"\n    dsymutil \"$BINARY\" -o \"$OUTPUT\" || true\n  fi\ndone\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		070000000000000000000001 /* Sources */ = {
@@ -436,6 +459,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
@@ -470,6 +494,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
