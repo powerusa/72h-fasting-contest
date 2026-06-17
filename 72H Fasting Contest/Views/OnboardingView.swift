@@ -5,7 +5,7 @@ struct OnboardingView: View {
     @State private var selection = 0
 
     private let pages = [
-        ("72H Fasting Contest", "Join a 72-hour fasting challenge and compete with others.", "trophy.fill"),
+        ("72Hour Fasting Leaderbord", "Join a 72-hour fasting challenge and compete with others.", "trophy.fill"),
         ("Track Your Progress", "See your timer, progress ring, milestones, and personal history.", "chart.xyaxis.line"),
         ("Compete Safely", "This app is for tracking and motivation only. It does not provide medical advice.", "shield.checkered")
     ]

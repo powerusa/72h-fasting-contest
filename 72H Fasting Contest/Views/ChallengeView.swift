@@ -19,7 +19,7 @@ struct ChallengeView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("72H Contest")
+            .navigationTitle("72Hour Fasting Leaderbord")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: openSettings.callAsFunction) {
@@ -37,7 +37,7 @@ struct ChallengeView: View {
             .navigationDestination(isPresented: $showingLeaderboard) {
                 LeaderboardView()
             }
-            .alert("72H Fasting Contest", isPresented: Binding(
+            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {

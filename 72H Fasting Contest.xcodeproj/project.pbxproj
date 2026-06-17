@@ -462,10 +462,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
+				INFOPLIST_KEY_CFBundleDisplayName = "72Hour Fasting Leaderbord";
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72H Fasting Contest sends optional hydration, check-in, and milestone reminders.";
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72Hour Fasting Leaderbord sends optional hydration, check-in, and milestone reminders.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -496,10 +496,10 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "72H Fasting Contest";
+				INFOPLIST_KEY_CFBundleDisplayName = "72Hour Fasting Leaderbord";
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72H Fasting Contest sends optional hydration, check-in, and milestone reminders.";
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "72Hour Fasting Leaderbord sends optional hydration, check-in, and milestone reminders.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

@@ -1,10 +1,10 @@
-# Firebase Setup for 72H Fasting Contest
+# Firebase Setup for 72Hour Fasting Leaderbord
 
 Use this checklist before uploading the app to App Store Connect.
 
 ## 1. Create the Firebase iOS App
 
-1. Open the Firebase console and create/select the project for 72H Fasting Contest.
+1. Open the Firebase console and create/select the project for 72Hour Fasting Leaderbord.
 2. Add an iOS app with bundle ID:
 
    ```text

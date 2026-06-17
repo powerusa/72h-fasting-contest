@@ -51,7 +51,7 @@ final class NotificationManager {
         guard interval > 1 else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "72H Fasting Contest"
+        content.title = "72Hour Fasting Leaderbord"
         content.body = title
         content.sound = .default
 
