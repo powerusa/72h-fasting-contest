@@ -15,7 +15,7 @@ struct SettingsView: View {
             Form {
                 Section("Edit Profile") {
                     TextField("Display name", text: $displayName)
-                    TextField("Country flag", text: $countryFlag)
+                    CountryFlagPicker(selectedFlag: $countryFlag)
                     ColorPickerRow(selectedHex: $avatarColor)
                     Button("Save Profile") {
                         Task {

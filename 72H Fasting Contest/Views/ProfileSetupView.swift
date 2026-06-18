@@ -7,7 +7,6 @@ struct ProfileSetupView: View {
     @State private var countryFlag = "🇺🇸"
 
     private let colors = ["#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#AF52DE", "#64D2FF"]
-    private let flags = ["🇺🇸", "🇨🇦", "🇬🇧", "🇩🇰", "🇯🇵", "🇦🇺", "🏁"]
 
     var body: some View {
         NavigationStack {
@@ -21,11 +20,7 @@ struct ProfileSetupView: View {
                         Spacer()
                     }
                     TextField("Display name", text: $displayName)
-                    Picker("Country", selection: $countryFlag) {
-                        ForEach(flags, id: \.self) { flag in
-                            Text(flag).tag(flag)
-                        }
-                    }
+                    CountryFlagPicker(selectedFlag: $countryFlag)
                 } header: {
                     Text("Profile")
                 } footer: {

@@ -196,6 +196,61 @@ struct EmptyStateView: View {
     }
 }
 
+struct CountryFlagPicker: View {
+    @Binding var selectedFlag: String
+
+    private var options: [CountryFlagOption] {
+        CountryFlagOption.all
+    }
+
+    var body: some View {
+        Picker("Country", selection: $selectedFlag) {
+            ForEach(options) { option in
+                Text("\(option.flag) \(option.name)")
+                    .tag(option.flag)
+            }
+        }
+        .pickerStyle(.navigationLink)
+    }
+}
+
+private struct CountryFlagOption: Identifiable {
+    let code: String
+    let name: String
+    let flag: String
+
+    var id: String { code }
+
+    static let all: [CountryFlagOption] = {
+        let currentLocale = Locale.current
+        let regionCodes = Locale.Region.isoRegions.map(\.identifier)
+        let countryOptions = regionCodes.compactMap { code -> CountryFlagOption? in
+            guard code.count == 2,
+                  code.unicodeScalars.allSatisfy({ CharacterSet.uppercaseLetters.contains($0) }),
+                  let flag = flagEmoji(for: code) else {
+                return nil
+            }
+            let name = currentLocale.localizedString(forRegionCode: code) ?? code
+            return CountryFlagOption(code: code, name: name, flag: flag)
+        }
+        .sorted { lhs, rhs in
+            lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+
+        return [CountryFlagOption(code: "ZZ", name: "Global", flag: "🏁")] + countryOptions
+    }()
+
+    private static func flagEmoji(for code: String) -> String? {
+        let scalars = code.unicodeScalars.compactMap { scalar -> UnicodeScalar? in
+            let value = scalar.value
+            guard value >= 65, value <= 90 else { return nil }
+            return UnicodeScalar(127397 + Int(value))
+        }
+        guard scalars.count == 2 else { return nil }
+        return String(String.UnicodeScalarView(scalars))
+    }
+}
+
 struct SafetyCheckboxRow: View {
     let title: String
     @Binding var isChecked: Bool
