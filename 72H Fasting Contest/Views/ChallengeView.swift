@@ -5,6 +5,7 @@ struct ChallengeView: View {
     @Environment(\.openSettings) private var openSettings
     @State private var showingSafety = false
     @State private var showingLeaderboard = false
+    @State private var showingLeaderboardConsent = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -35,6 +36,17 @@ struct ChallengeView: View {
             }
             .sheet(isPresented: $showingSafety) {
                 SafetyAgreementView()
+            }
+            .sheet(isPresented: $showingLeaderboardConsent) {
+                LeaderboardConsentView {
+                    if viewModel.hasAcceptedSafety {
+                        Task { await viewModel.startFast() }
+                    } else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showingSafety = true
+                        }
+                    }
+                }
             }
             .navigationDestination(isPresented: $showingLeaderboard) {
                 LeaderboardView()
@@ -97,7 +109,9 @@ struct ChallengeView: View {
                 }
             } else {
                 PrimaryButton(title: "Start 72H Fast", systemImage: "play.fill") {
-                    if viewModel.hasAcceptedSafety {
+                    if !viewModel.hasAcceptedLeaderboardDataSharing {
+                        showingLeaderboardConsent = true
+                    } else if viewModel.hasAcceptedSafety {
                         Task { await viewModel.startFast() }
                     } else {
                         showingSafety = true

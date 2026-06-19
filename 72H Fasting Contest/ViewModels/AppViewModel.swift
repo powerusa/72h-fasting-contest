@@ -8,6 +8,7 @@ final class AppViewModel: ObservableObject {
 
     @Published var hasCompletedOnboarding = false
     @Published var hasAcceptedSafety = false
+    @Published var hasAcceptedLeaderboardDataSharing = false
     @Published var profile: UserProfile?
     @Published var activeSession: FastingSession?
     @Published var history: [FastingSession] = []
@@ -73,6 +74,7 @@ final class AppViewModel: ObservableObject {
         let snapshot = await store.load()
         hasCompletedOnboarding = snapshot.hasCompletedOnboarding
         hasAcceptedSafety = snapshot.hasAcceptedSafety
+        hasAcceptedLeaderboardDataSharing = snapshot.hasAcceptedLeaderboardDataSharing
         profile = snapshot.profile.map { existingProfile in
             var unlockedProfile = existingProfile
             unlockedProfile.premiumUnlocked = true
@@ -95,10 +97,14 @@ final class AppViewModel: ObservableObject {
         persist()
     }
 
-    func saveProfile(displayName: String, avatarColorHex: String, countryFlag: String) async {
+    func saveProfile(displayName: String, avatarColorHex: String, countryFlag: String, acceptsLeaderboardDataSharing: Bool) async {
         let cleanName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanName.isEmpty else {
             errorMessage = "Add a display name to continue."
+            return
+        }
+        guard acceptsLeaderboardDataSharing else {
+            errorMessage = "Consent is required before uploading your leaderboard profile and fasting score."
             return
         }
 
@@ -120,6 +126,7 @@ final class AppViewModel: ObservableObject {
             premiumUnlocked: true
         )
         self.profile = profile
+        hasAcceptedLeaderboardDataSharing = true
         do {
             try await backend.saveUser(profile)
         } catch {
@@ -135,7 +142,16 @@ final class AppViewModel: ObservableObject {
         persist()
     }
 
+    func acceptLeaderboardDataSharing() {
+        hasAcceptedLeaderboardDataSharing = true
+        persist()
+    }
+
     func startFast(contestId: String? = nil) async {
+        guard hasAcceptedLeaderboardDataSharing else {
+            errorMessage = "Consent is required before uploading your fasting score to the global leaderboard."
+            return
+        }
         guard hasAcceptedSafety else {
             errorMessage = "Review and accept the safety agreement first."
             return
@@ -272,6 +288,7 @@ final class AppViewModel: ObservableObject {
         let snapshot = AppSnapshot(
             hasCompletedOnboarding: hasCompletedOnboarding,
             hasAcceptedSafety: hasAcceptedSafety,
+            hasAcceptedLeaderboardDataSharing: hasAcceptedLeaderboardDataSharing,
             profile: profile,
             activeSession: activeSession,
             history: history,
@@ -367,7 +384,7 @@ final class AppViewModel: ObservableObject {
                 var unlockedProfile = remoteProfile
                 unlockedProfile.premiumUnlocked = true
                 profile = unlockedProfile
-            } else if var cachedProfile = profile {
+            } else if var cachedProfile = profile, hasAcceptedLeaderboardDataSharing {
                 cachedProfile.id = userId
                 cachedProfile.premiumUnlocked = true
                 profile = cachedProfile
@@ -384,6 +401,7 @@ final class AppViewModel: ObservableObject {
                 reachedMilestones = Set(Milestone.all.filter { remoteActiveSession.elapsedSeconds >= TimeInterval($0.hour * 3600) }.map(\.hour))
             } else if let localActiveSession = activeSession,
                       localActiveSession.status == .active,
+                      hasAcceptedLeaderboardDataSharing,
                       let profile {
                 let migratedSession = try await backend.startFastingSession(profile: profile, contest: nil)
                 activeSession = migratedSession

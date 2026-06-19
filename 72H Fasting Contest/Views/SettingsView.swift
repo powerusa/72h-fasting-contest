@@ -19,7 +19,30 @@ struct SettingsView: View {
                     ColorPickerRow(selectedHex: $avatarColor)
                     Button("Save Profile") {
                         Task {
-                            await viewModel.saveProfile(displayName: displayName, avatarColorHex: avatarColor, countryFlag: countryFlag)
+                            await viewModel.saveProfile(
+                                displayName: displayName,
+                                avatarColorHex: avatarColor,
+                                countryFlag: countryFlag,
+                                acceptsLeaderboardDataSharing: viewModel.hasAcceptedLeaderboardDataSharing
+                            )
+                        }
+                    }
+                }
+
+                Section("Leaderboard Privacy") {
+                    Label(
+                        viewModel.hasAcceptedLeaderboardDataSharing ? "Leaderboard sharing accepted" : "Leaderboard sharing not accepted",
+                        systemImage: viewModel.hasAcceptedLeaderboardDataSharing ? "checkmark.shield.fill" : "exclamationmark.triangle.fill"
+                    )
+                    .foregroundStyle(viewModel.hasAcceptedLeaderboardDataSharing ? .green : .orange)
+
+                    Text(leaderboardDataSharingDisclosure)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    if !viewModel.hasAcceptedLeaderboardDataSharing {
+                        Button("Accept Leaderboard Sharing") {
+                            viewModel.acceptLeaderboardDataSharing()
                         }
                     }
                 }

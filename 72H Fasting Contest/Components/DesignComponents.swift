@@ -276,6 +276,55 @@ struct SafetyCheckboxRow: View {
     }
 }
 
+struct LeaderboardConsentView: View {
+    @EnvironmentObject private var viewModel: AppViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var hasConsented = false
+    var onAccepted: () -> Void = {}
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    Label("Leaderboard Data Sharing", systemImage: "list.number")
+                        .font(.title2.bold())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text(leaderboardDataSharingDisclosure)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                    SafetyCheckboxRow(
+                        title: "I consent to uploading my leaderboard profile and fasting score to Firebase so they can appear to other app users.",
+                        isChecked: $hasConsented
+                    )
+
+                    Link("Privacy Policy", destination: URL(string: "https://github.com/powerusa/72h-fasting-contest/blob/main/PRIVACY_POLICY.md")!)
+
+                    PrimaryButton(title: "Accept and Continue", systemImage: "checkmark.shield.fill") {
+                        viewModel.acceptLeaderboardDataSharing()
+                        dismiss()
+                        onAccepted()
+                    }
+                    .opacity(hasConsented ? 1 : 0.45)
+                    .disabled(!hasConsented)
+                }
+                .padding()
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Privacy Consent")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
 struct AvatarView: View {
     let hex: String
     let initials: String

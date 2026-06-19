@@ -1,6 +1,6 @@
 # Privacy Policy for 72Hour Fasting Leaderbord
 
-Last updated: June 17, 2026
+Last updated: June 19, 2026
 
 72Hour Fasting Leaderbord is a paid App Store app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
 
@@ -71,6 +71,8 @@ Firebase may process technical information needed to provide these services, suc
 We do not sell your data.
 
 We do not share your data with advertisers or data brokers.
+
+Before uploading your leaderboard profile or fasting score, the app asks for your consent. If you consent and start a fast, your display name, avatar color, country flag, anonymous user ID, fast start time, fast status, and elapsed fasting time may be uploaded to Firebase so your score can appear on the global leaderboard and private contest leaderboards.
 
 Information you choose to show in leaderboard or contest features, such as display name, avatar color, country flag, status, and fasting time, may be visible to other app users or private contest participants.
 

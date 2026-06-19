@@ -5,6 +5,7 @@ struct ProfileSetupView: View {
     @State private var displayName = ""
     @State private var selectedColor = "#0A84FF"
     @State private var countryFlag = "🇺🇸"
+    @State private var acceptsLeaderboardDataSharing = false
 
     private let colors = ["#0A84FF", "#30D158", "#FF9F0A", "#FF375F", "#AF52DE", "#64D2FF"]
 
@@ -46,12 +47,29 @@ struct ProfileSetupView: View {
                     .padding(.vertical, 6)
                 }
 
+                Section("Leaderboard Privacy") {
+                    Text(leaderboardDataSharingDisclosure)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    SafetyCheckboxRow(
+                        title: "I consent to uploading my leaderboard profile and fasting score so they can appear in the global leaderboard.",
+                        isChecked: $acceptsLeaderboardDataSharing
+                    )
+                }
+
                 Section {
                     PrimaryButton(title: "Create Profile", systemImage: "person.crop.circle.badge.checkmark") {
                         Task {
-                            await viewModel.saveProfile(displayName: displayName, avatarColorHex: selectedColor, countryFlag: countryFlag)
+                            await viewModel.saveProfile(
+                                displayName: displayName,
+                                avatarColorHex: selectedColor,
+                                countryFlag: countryFlag,
+                                acceptsLeaderboardDataSharing: acceptsLeaderboardDataSharing
+                            )
                         }
                     }
+                    .opacity(acceptsLeaderboardDataSharing ? 1 : 0.45)
+                    .disabled(!acceptsLeaderboardDataSharing)
                 }
                 .listRowBackground(Color.clear)
             }

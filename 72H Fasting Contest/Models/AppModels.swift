@@ -3,6 +3,8 @@ import SwiftUI
 
 let safetyDisclaimer = "This app is for tracking, motivation, and friendly competition only. It does not provide medical advice, diagnosis, or treatment. Fasting may not be appropriate for everyone. Consult a healthcare professional before fasting, especially if you have any medical condition, are pregnant, are under 18, or take medication. Stop fasting if you feel unwell."
 
+let leaderboardDataSharingDisclosure = "When you start a fast, your display name, avatar color, country flag, anonymous user ID, fast start time, fast status, and elapsed fasting time are uploaded to Firebase so your score can appear on the global leaderboard and private contest leaderboards."
+
 enum SessionStatus: String, Codable, CaseIterable, Identifiable {
     case notStarted = "Not Started"
     case active = "Active"
@@ -224,12 +226,60 @@ struct NotificationPreferences: Codable, Equatable {
 struct AppSnapshot: Codable {
     var hasCompletedOnboarding: Bool = false
     var hasAcceptedSafety: Bool = false
+    var hasAcceptedLeaderboardDataSharing: Bool = false
     var profile: UserProfile?
     var activeSession: FastingSession?
     var history: [FastingSession] = []
     var contests: [Contest] = []
     var unlockedBadges: [UnlockedBadge] = []
     var notificationPreferences: NotificationPreferences = .default
+
+    init(
+        hasCompletedOnboarding: Bool = false,
+        hasAcceptedSafety: Bool = false,
+        hasAcceptedLeaderboardDataSharing: Bool = false,
+        profile: UserProfile? = nil,
+        activeSession: FastingSession? = nil,
+        history: [FastingSession] = [],
+        contests: [Contest] = [],
+        unlockedBadges: [UnlockedBadge] = [],
+        notificationPreferences: NotificationPreferences = .default
+    ) {
+        self.hasCompletedOnboarding = hasCompletedOnboarding
+        self.hasAcceptedSafety = hasAcceptedSafety
+        self.hasAcceptedLeaderboardDataSharing = hasAcceptedLeaderboardDataSharing
+        self.profile = profile
+        self.activeSession = activeSession
+        self.history = history
+        self.contests = contests
+        self.unlockedBadges = unlockedBadges
+        self.notificationPreferences = notificationPreferences
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case hasCompletedOnboarding
+        case hasAcceptedSafety
+        case hasAcceptedLeaderboardDataSharing
+        case profile
+        case activeSession
+        case history
+        case contests
+        case unlockedBadges
+        case notificationPreferences
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
+        hasAcceptedSafety = try container.decodeIfPresent(Bool.self, forKey: .hasAcceptedSafety) ?? false
+        hasAcceptedLeaderboardDataSharing = try container.decodeIfPresent(Bool.self, forKey: .hasAcceptedLeaderboardDataSharing) ?? false
+        profile = try container.decodeIfPresent(UserProfile.self, forKey: .profile)
+        activeSession = try container.decodeIfPresent(FastingSession.self, forKey: .activeSession)
+        history = try container.decodeIfPresent([FastingSession].self, forKey: .history) ?? []
+        contests = try container.decodeIfPresent([Contest].self, forKey: .contests) ?? []
+        unlockedBadges = try container.decodeIfPresent([UnlockedBadge].self, forKey: .unlockedBadges) ?? []
+        notificationPreferences = try container.decodeIfPresent(NotificationPreferences.self, forKey: .notificationPreferences) ?? .default
+    }
 }
 
 extension TimeInterval {
