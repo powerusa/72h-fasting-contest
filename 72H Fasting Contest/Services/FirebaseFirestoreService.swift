@@ -138,8 +138,12 @@ final class FirebaseContestBackend: ContestBackend {
     func startFastingSession(profile: UserProfile, contest: Contest?) async throws -> FastingSession {
         guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
 
-        if try await fetchActiveSession(userId: profile.id) != nil {
-            throw BackendError.activeSessionAlreadyExists
+        if let existingActiveSession = try await fetchActiveSession(userId: profile.id) {
+            if Date().timeIntervalSince(existingActiveSession.startTime) >= AppViewModel.challengeDuration {
+                _ = try await completeFastingSession(existingActiveSession)
+            } else {
+                throw BackendError.activeSessionAlreadyExists
+            }
         }
 
         let doc = db.collection(sessions).document()

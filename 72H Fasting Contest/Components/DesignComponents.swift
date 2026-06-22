@@ -98,11 +98,6 @@ struct LeaderboardRow: View {
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {
                 StatusBadge(status: entry.status)
-                if entry.status == .completed {
-                    Label("Finished", systemImage: "checkmark.seal.fill")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.green)
-                }
             }
         }
         .padding(14)
