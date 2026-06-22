@@ -185,7 +185,8 @@ service cloud.firestore {
       return request.resource.data.status == 'completed'
         && request.resource.data.endTime is timestamp
         && request.time >= resource.data.startTime + duration.value(72, 'h')
-        && request.resource.data.endTime == resource.data.startTime + duration.value(72, 'h')
+        && request.resource.data.endTime >= resource.data.startTime + duration.value(72, 'h')
+        && request.resource.data.endTime <= request.time
         && request.resource.data.elapsedSeconds == 259200;
     }
 
