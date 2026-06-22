@@ -1,9 +1,11 @@
 import SwiftUI
+import MessageUI
 
 struct ContestsView: View {
     @EnvironmentObject private var viewModel: AppViewModel
     @State private var title = ""
     @State private var code = ""
+    @State private var inviteSheet: InviteSheet?
 
     var body: some View {
         NavigationStack {
@@ -17,6 +19,14 @@ struct ContestsView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Private Contests")
+            .sheet(item: $inviteSheet) { sheet in
+                switch sheet {
+                case .message(let contest):
+                    MessageInviteSheet(messageBody: inviteMessage(for: contest))
+                case .share(let contest):
+                    ActivityInviteSheet(items: [inviteMessage(for: contest)])
+                }
+            }
         }
     }
 
@@ -77,7 +87,9 @@ struct ContestsView: View {
                         Text("\(contest.participantIds.count) participants")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        PrimaryButton(title: "Invite Friends", systemImage: "square.and.arrow.up", tint: .indigo) {}
+                        PrimaryButton(title: "Invite Friends", systemImage: "square.and.arrow.up", tint: .indigo) {
+                            inviteSheet = MFMessageComposeViewController.canSendText() ? .message(contest) : .share(contest)
+                        }
                     }
                     .padding()
                     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -85,4 +97,62 @@ struct ContestsView: View {
             }
         }
     }
+
+    private func inviteMessage(for contest: Contest) -> String {
+        """
+        Join my 72Hour Fasting Leaderbord private contest.
+
+        Invite code: \(contest.contestCode)
+
+        Open the app, go to Contests, and enter the code under Join With Code.
+        Download the app from the App Store: https://apps.apple.com/us/search?term=72Hour%20Fasting%20Leaderbord
+        """
+    }
+}
+
+private enum InviteSheet: Identifiable {
+    case message(Contest)
+    case share(Contest)
+
+    var id: String {
+        switch self {
+        case .message(let contest): return "message-\(contest.id)"
+        case .share(let contest): return "share-\(contest.id)"
+        }
+    }
+}
+
+private struct MessageInviteSheet: UIViewControllerRepresentable {
+    let messageBody: String
+
+    func makeUIViewController(context: Context) -> MFMessageComposeViewController {
+        let controller = MFMessageComposeViewController()
+        controller.body = messageBody
+        controller.messageComposeDelegate = context.coordinator
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: MFMessageComposeViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    final class Coordinator: NSObject, MFMessageComposeViewControllerDelegate {
+        func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+            controller.dismiss(animated: true)
+        }
+    }
+}
+
+private struct ActivityInviteSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        controller.popoverPresentationController?.sourceView = controller.view
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
