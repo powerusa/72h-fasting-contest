@@ -30,6 +30,7 @@ protocol ContestBackend {
     func completeFastingSession(_ session: FastingSession) async throws -> FastingSession
     func createPrivateContest(title: String, creatorUserId: String) async throws -> Contest
     func joinPrivateContest(contestCode: String, userId: String) async throws -> Contest
+    func removePrivateContest(_ contest: Contest, userId: String) async throws
     func unlockBadge(userId: String, badgeType: BadgeType) async throws
     func leaderboard(for contestId: String?, currentUser: UserProfile?, activeSession: FastingSession?, history: [FastingSession]) async -> [LeaderboardEntry]
     func listenToLeaderboard(scope: LeaderboardScope, currentUserId: String, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener?
@@ -113,6 +114,8 @@ struct OfflineContestBackend: ContestBackend {
             isPrivate: true
         )
     }
+
+    func removePrivateContest(_ contest: Contest, userId: String) async throws {}
 
     func unlockBadge(userId: String, badgeType: BadgeType) async throws {}
 

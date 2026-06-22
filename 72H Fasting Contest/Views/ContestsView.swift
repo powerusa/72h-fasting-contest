@@ -9,6 +9,8 @@ struct ContestsView: View {
     @State private var pendingStartContest: Contest?
     @State private var showingSafety = false
     @State private var showingLeaderboardConsent = false
+    @State private var pendingRemoveContest: Contest?
+    @State private var showingRemoveConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -53,6 +55,25 @@ struct ContestsView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(viewModel.errorMessage ?? "")
+            }
+            .confirmationDialog(
+                removeConfirmationTitle,
+                isPresented: $showingRemoveConfirmation,
+                titleVisibility: .visible
+            ) {
+                if let pendingRemoveContest {
+                    Button(removeActionTitle(for: pendingRemoveContest), role: .destructive) {
+                        Task {
+                            await viewModel.removeContest(pendingRemoveContest)
+                            self.pendingRemoveContest = nil
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    pendingRemoveContest = nil
+                }
+            } message: {
+                Text(removeConfirmationMessage)
             }
         }
     }
@@ -131,12 +152,42 @@ struct ContestsView: View {
                         PrimaryButton(title: "Invite Friends", systemImage: "square.and.arrow.up", tint: .indigo) {
                             inviteSheet = MFMessageComposeViewController.canSendText() ? .message(contest) : .share(contest)
                         }
+
+                        Button(role: .destructive) {
+                            pendingRemoveContest = contest
+                            showingRemoveConfirmation = true
+                        } label: {
+                            Label(removeActionTitle(for: contest), systemImage: contest.creatorUserId == viewModel.profile?.id ? "trash.fill" : "rectangle.portrait.and.arrow.right")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.red)
+                        .background(.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .padding()
                     .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
             }
         }
+    }
+
+    private var removeConfirmationTitle: String {
+        guard let pendingRemoveContest else { return "Remove Contest?" }
+        return pendingRemoveContest.creatorUserId == viewModel.profile?.id ? "Delete Contest?" : "Leave Contest?"
+    }
+
+    private var removeConfirmationMessage: String {
+        guard let pendingRemoveContest else { return "" }
+        if pendingRemoveContest.creatorUserId == viewModel.profile?.id {
+            return "This removes the private contest for everyone. Existing fasting history stays in each user's history."
+        }
+        return "This removes the private contest from your list. Other participants can continue using it."
+    }
+
+    private func removeActionTitle(for contest: Contest) -> String {
+        contest.creatorUserId == viewModel.profile?.id ? "Delete Contest" : "Leave Contest"
     }
 
     private func inviteMessage(for contest: Contest) -> String {

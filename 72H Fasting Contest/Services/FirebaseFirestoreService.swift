@@ -273,6 +273,19 @@ final class FirebaseContestBackend: ContestBackend {
         return contest
     }
 
+    func removePrivateContest(_ contest: Contest, userId: String) async throws {
+        guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
+        let reference = db.collection(contests).document(contest.id)
+        if contest.creatorUserId == userId {
+            try await reference.delete()
+        } else {
+            try await reference.updateData([
+                "participantIds": FieldValue.arrayRemove([userId]),
+                "updatedAt": FieldValue.serverTimestamp()
+            ])
+        }
+    }
+
     func unlockBadge(userId: String, badgeType: BadgeType) async throws {
         guard FirebaseBootstrap.isConfigured else { return }
         let badgeId = "\(userId)-\(badgeType.id)"

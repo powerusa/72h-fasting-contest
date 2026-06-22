@@ -267,6 +267,17 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    func removeContest(_ contest: Contest) async {
+        guard let profile else { return }
+        do {
+            try await backend.removePrivateContest(contest, userId: profile.id)
+            contests.removeAll { $0.id == contest.id }
+            persist()
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+        }
+    }
+
     func updateNotificationPreferences(_ preferences: NotificationPreferences) {
         notificationPreferences = preferences
         if let activeSession, activeSession.status == .active {
@@ -286,7 +297,7 @@ final class AppViewModel: ObservableObject {
 
     func contestParticipantRows(for contest: Contest) -> [ContestParticipantRow] {
         let activeRows = leaderboard
-            .filter { $0.contestId == contest.id }
+            .filter { contest.participantIds.contains($0.userId) }
             .map { entry in
                 ContestParticipantRow(
                     id: entry.userId,
@@ -305,16 +316,17 @@ final class AppViewModel: ObservableObject {
 
         for userId in contest.participantIds where !seenUserIds.contains(userId) {
             if let profile, profile.id == userId {
+                let currentActiveSessionApplies = activeSession?.status == .active || activeSession?.contestId == contest.id
                 rows.append(
                     ContestParticipantRow(
                         id: userId,
                         displayName: profile.displayName,
                         avatarColorHex: profile.avatarColorHex,
                         countryFlag: profile.countryFlag,
-                        fastingSeconds: activeSession?.contestId == contest.id ? activeSession?.elapsedSeconds : nil,
-                        status: activeSession?.contestId == contest.id ? activeSession?.status : nil,
+                        fastingSeconds: currentActiveSessionApplies ? activeSession?.elapsedSeconds : nil,
+                        status: currentActiveSessionApplies ? activeSession?.status : nil,
                         isCurrentUser: true,
-                        completedAt: activeSession?.contestId == contest.id && activeSession?.status == .completed ? activeSession?.endTime : nil
+                        completedAt: activeSession?.status == .completed ? activeSession?.endTime : nil
                     )
                 )
             } else {
