@@ -4,6 +4,7 @@ struct SafetyAgreementView: View {
     @EnvironmentObject private var viewModel: AppViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var checks = [false, false, false, false]
+    var onAccepted: (() -> Void)?
 
     private let rows = [
         "I understand this app is for tracking and motivation only.",
@@ -29,7 +30,11 @@ struct SafetyAgreementView: View {
                     PrimaryButton(title: "Accept and Continue", systemImage: "checkmark") {
                         viewModel.acceptSafetyAgreement()
                         dismiss()
-                        Task { await viewModel.startFast() }
+                        if let onAccepted {
+                            onAccepted()
+                        } else {
+                            Task { await viewModel.startFast() }
+                        }
                     }
                     .opacity(checks.allSatisfy(\.self) ? 1 : 0.45)
                     .disabled(!checks.allSatisfy(\.self))

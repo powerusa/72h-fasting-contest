@@ -6,6 +6,9 @@ struct ContestsView: View {
     @State private var title = ""
     @State private var code = ""
     @State private var inviteSheet: InviteSheet?
+    @State private var pendingStartContest: Contest?
+    @State private var showingSafety = false
+    @State private var showingLeaderboardConsent = false
 
     var body: some View {
         NavigationStack {
@@ -26,6 +29,30 @@ struct ContestsView: View {
                 case .share(let contest):
                     ActivityInviteSheet(items: [inviteMessage(for: contest)])
                 }
+            }
+            .sheet(isPresented: $showingSafety) {
+                SafetyAgreementView {
+                    startPendingContestFast()
+                }
+            }
+            .sheet(isPresented: $showingLeaderboardConsent) {
+                LeaderboardConsentView {
+                    if viewModel.hasAcceptedSafety {
+                        startPendingContestFast()
+                    } else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showingSafety = true
+                        }
+                    }
+                }
+            }
+            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
         }
     }
@@ -95,6 +122,12 @@ struct ContestsView: View {
                         }
                         .padding(.vertical, 4)
 
+                        Text("Not Started means the person joined this contest but has not tapped Start Contest Fast yet.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        contestFastAction(for: contest)
+
                         PrimaryButton(title: "Invite Friends", systemImage: "square.and.arrow.up", tint: .indigo) {
                             inviteSheet = MFMessageComposeViewController.canSendText() ? .message(contest) : .share(contest)
                         }
@@ -112,9 +145,47 @@ struct ContestsView: View {
 
         Invite code: \(contest.contestCode)
 
-        Open the app, go to Contests, and enter the code under Join With Code.
+        Open the app, go to Contests, enter the code under Join With Code, then tap Start Contest Fast in the contest card.
         Download the app from the App Store: https://apps.apple.com/us/search?term=72Hour%20Fasting%20Leaderbord
         """
+    }
+
+    @ViewBuilder
+    private func contestFastAction(for contest: Contest) -> some View {
+        if viewModel.activeSession?.contestId == contest.id {
+            Label("Contest fast is active", systemImage: "flame.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        } else if viewModel.status == .active {
+            Label("Finish your current fast before starting this contest fast.", systemImage: "timer")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        } else {
+            PrimaryButton(title: "Start Contest Fast", systemImage: "play.fill", tint: .orange) {
+                pendingStartContest = contest
+                if !viewModel.hasAcceptedLeaderboardDataSharing {
+                    showingLeaderboardConsent = true
+                } else if !viewModel.hasAcceptedSafety {
+                    showingSafety = true
+                } else {
+                    startPendingContestFast()
+                }
+            }
+        }
+    }
+
+    private func startPendingContestFast() {
+        guard let contest = pendingStartContest else { return }
+        Task {
+            await viewModel.startFast(contestId: contest.id)
+            pendingStartContest = nil
+        }
     }
 }
 
@@ -203,7 +274,7 @@ private struct ContestParticipantRowView: View {
                     .scaleEffect(0.85)
                     .frame(width: 78, alignment: .trailing)
             } else {
-                Label("Waiting", systemImage: "person.fill.checkmark")
+                Label("Not Started", systemImage: "hourglass")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -214,7 +285,7 @@ private struct ContestParticipantRowView: View {
 
     private var detailText: String {
         guard participant.status == .completed, let completedAt = participant.completedAt else {
-            return participant.fastingSeconds?.compactHoursString ?? "Joined"
+            return participant.fastingSeconds?.compactHoursString ?? (participant.isCurrentUser ? "Joined - start contest fast" : "Joined - not started")
         }
         return "Finished \(completedAt.formatted(date: .abbreviated, time: .shortened))"
     }
