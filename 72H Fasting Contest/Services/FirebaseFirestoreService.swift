@@ -138,11 +138,19 @@ final class FirebaseContestBackend: ContestBackend {
     func startFastingSession(profile: UserProfile, contest: Contest?) async throws -> FastingSession {
         guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
 
-        if let existingActiveSession = try await fetchActiveSession(userId: profile.id) {
-            if Date().timeIntervalSince(existingActiveSession.startTime) >= AppViewModel.challengeDuration {
-                _ = try await completeFastingSession(existingActiveSession)
-            } else {
+        let activeSessionsSnapshot = try await db.collection(sessions)
+            .whereField("userId", isEqualTo: profile.id)
+            .whereField("status", isEqualTo: SessionStatus.active.firestoreValue)
+            .getDocuments()
+        let existingActiveSessions = activeSessionsSnapshot.documents.compactMap { session(from: $0.data(), id: $0.documentID) }
+        for existingActiveSession in existingActiveSessions {
+            if Date().timeIntervalSince(existingActiveSession.startTime) < AppViewModel.challengeDuration {
                 throw BackendError.activeSessionAlreadyExists
+            }
+            do {
+                _ = try await completeFastingSession(existingActiveSession)
+            } catch {
+                print("Firestore could not mark expired session completed before new start:", error.localizedDescription)
             }
         }
 
