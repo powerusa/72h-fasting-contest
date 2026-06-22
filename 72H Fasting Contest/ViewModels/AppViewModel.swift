@@ -284,6 +284,56 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    func contestParticipantRows(for contest: Contest) -> [ContestParticipantRow] {
+        let activeRows = leaderboard
+            .filter { $0.contestId == contest.id }
+            .map { entry in
+                ContestParticipantRow(
+                    id: entry.userId,
+                    displayName: entry.displayName,
+                    avatarColorHex: entry.avatarColorHex,
+                    countryFlag: entry.countryFlag,
+                    fastingSeconds: entry.fastingSeconds,
+                    status: entry.status,
+                    isCurrentUser: entry.isCurrentUser
+                )
+            }
+
+        var rows = activeRows
+        var seenUserIds = Set(activeRows.map(\.id))
+
+        for userId in contest.participantIds where !seenUserIds.contains(userId) {
+            if let profile, profile.id == userId {
+                rows.append(
+                    ContestParticipantRow(
+                        id: userId,
+                        displayName: profile.displayName,
+                        avatarColorHex: profile.avatarColorHex,
+                        countryFlag: profile.countryFlag,
+                        fastingSeconds: activeSession?.contestId == contest.id ? activeSession?.elapsedSeconds : nil,
+                        status: activeSession?.contestId == contest.id ? activeSession?.status : nil,
+                        isCurrentUser: true
+                    )
+                )
+            } else {
+                rows.append(
+                    ContestParticipantRow(
+                        id: userId,
+                        displayName: "Participant",
+                        avatarColorHex: "#8E8E93",
+                        countryFlag: "🏁",
+                        fastingSeconds: nil,
+                        status: nil,
+                        isCurrentUser: false
+                    )
+                )
+            }
+            seenUserIds.insert(userId)
+        }
+
+        return rows
+    }
+
     func persist() {
         let snapshot = AppSnapshot(
             hasCompletedOnboarding: hasCompletedOnboarding,

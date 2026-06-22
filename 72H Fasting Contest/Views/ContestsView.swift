@@ -87,6 +87,14 @@ struct ContestsView: View {
                         Text("\(contest.participantIds.count) participants")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+
+                        VStack(spacing: 8) {
+                            ForEach(viewModel.contestParticipantRows(for: contest)) { participant in
+                                ContestParticipantRowView(participant: participant)
+                            }
+                        }
+                        .padding(.vertical, 4)
+
                         PrimaryButton(title: "Invite Friends", systemImage: "square.and.arrow.up", tint: .indigo) {
                             inviteSheet = MFMessageComposeViewController.canSendText() ? .message(contest) : .share(contest)
                         }
@@ -155,4 +163,52 @@ private struct ActivityInviteSheet: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+private struct ContestParticipantRowView: View {
+    let participant: ContestParticipantRow
+
+    var body: some View {
+        HStack(spacing: 10) {
+            AvatarView(hex: participant.avatarColorHex, initials: String(participant.displayName.prefix(1)))
+                .scaleEffect(0.82)
+                .frame(width: 36, height: 36)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 5) {
+                    Text(participant.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
+                    Text(participant.countryFlag)
+                        .font(.subheadline)
+                    if participant.isCurrentUser {
+                        Text("You")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.blue.opacity(0.12), in: Capsule())
+                    }
+                }
+
+                Text(participant.fastingSeconds?.compactHoursString ?? "Joined")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if let status = participant.status {
+                StatusBadge(status: status)
+                    .scaleEffect(0.85)
+                    .frame(width: 78, alignment: .trailing)
+            } else {
+                Label("Waiting", systemImage: "person.fill.checkmark")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(10)
+        .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
 }

@@ -183,6 +183,16 @@ struct LeaderboardEntry: Identifiable, Equatable {
     var contestId: String? = nil
 }
 
+struct ContestParticipantRow: Identifiable, Equatable {
+    let id: String
+    let displayName: String
+    let avatarColorHex: String
+    let countryFlag: String
+    let fastingSeconds: TimeInterval?
+    let status: SessionStatus?
+    let isCurrentUser: Bool
+}
+
 enum LeaderboardScope: Equatable {
     case global
     case weekly
