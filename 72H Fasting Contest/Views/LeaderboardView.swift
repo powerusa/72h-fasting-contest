@@ -20,7 +20,7 @@ struct LeaderboardView: View {
                         firebaseDebugBanner
 
                         if filteredEntries.isEmpty {
-                            EmptyStateView(title: "No active fasters", message: "The leaderboard will fill when people start a 72H fast.", systemImage: "flame")
+                            EmptyStateView(title: "No leaderboard entries", message: "The leaderboard will fill when people start or finish a 72H fast.", systemImage: "flame")
                         } else {
                             ForEach(filteredEntries) { entry in
                                 LeaderboardRow(entry: entry)
@@ -55,9 +55,9 @@ struct LeaderboardView: View {
     private var filteredEntries: [LeaderboardEntry] {
         switch tab {
         case .global:
-            return viewModel.leaderboard.filter { $0.status == .active }
+            return viewModel.leaderboard.filter { $0.status == .active || $0.status == .completed }
         case .thisWeek:
-            return viewModel.leaderboard.filter { $0.status == .active }
+            return viewModel.leaderboard.filter { $0.status == .active || $0.status == .completed }
         }
     }
 }

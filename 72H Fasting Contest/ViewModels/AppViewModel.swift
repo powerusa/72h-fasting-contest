@@ -295,7 +295,8 @@ final class AppViewModel: ObservableObject {
                     countryFlag: entry.countryFlag,
                     fastingSeconds: entry.fastingSeconds,
                     status: entry.status,
-                    isCurrentUser: entry.isCurrentUser
+                    isCurrentUser: entry.isCurrentUser,
+                    completedAt: entry.completedAt
                 )
             }
 
@@ -312,7 +313,8 @@ final class AppViewModel: ObservableObject {
                         countryFlag: profile.countryFlag,
                         fastingSeconds: activeSession?.contestId == contest.id ? activeSession?.elapsedSeconds : nil,
                         status: activeSession?.contestId == contest.id ? activeSession?.status : nil,
-                        isCurrentUser: true
+                        isCurrentUser: true,
+                        completedAt: activeSession?.contestId == contest.id && activeSession?.status == .completed ? activeSession?.endTime : nil
                     )
                 )
             } else {
@@ -324,7 +326,8 @@ final class AppViewModel: ObservableObject {
                         countryFlag: "🏁",
                         fastingSeconds: nil,
                         status: nil,
-                        isCurrentUser: false
+                        isCurrentUser: false,
+                        completedAt: nil
                     )
                 )
             }

@@ -380,11 +380,25 @@ final class FirebaseContestBackend: ContestBackend {
                 print("Leaderboard session pending timestamp:", document.documentID, data["displayName"] as? String ?? "Contestant", data["status"] as? String ?? "-")
                 return nil
             }
-            let status = SessionStatus(firestoreValue: data["status"] as? String ?? "")
-            print("Leaderboard session:", document.documentID, data["displayName"] as? String ?? "Contestant", status.firestoreValue)
-            guard status == .active else { return nil }
+            let storedStatus = SessionStatus(firestoreValue: data["status"] as? String ?? "")
+            print("Leaderboard session:", document.documentID, data["displayName"] as? String ?? "Contestant", storedStatus.firestoreValue)
             let storedElapsed = TimeInterval(data["elapsedSeconds"] as? Int ?? 0)
             let liveElapsed = max(storedElapsed, Date().timeIntervalSince(startTime))
+            let effectiveStatus: SessionStatus
+            let completedAt: Date?
+
+            if let endTime = timestampDate(data["endTime"]) {
+                effectiveStatus = storedStatus == .stopped ? .stopped : .completed
+                completedAt = endTime
+            } else if storedStatus == .active, liveElapsed >= AppViewModel.challengeDuration {
+                effectiveStatus = .completed
+                completedAt = startTime.addingTimeInterval(AppViewModel.challengeDuration)
+            } else {
+                effectiveStatus = storedStatus
+                completedAt = nil
+            }
+
+            guard effectiveStatus == .active || effectiveStatus == .completed else { return nil }
 
             return LeaderboardEntry(
                 id: document.documentID,
@@ -394,13 +408,19 @@ final class FirebaseContestBackend: ContestBackend {
                 avatarColorHex: data["avatarColor"] as? String ?? "#0A84FF",
                 countryFlag: data["countryFlag"] as? String ?? "🏁",
                 fastingSeconds: min(liveElapsed, AppViewModel.challengeDuration),
-                status: status,
+                status: effectiveStatus,
                 isCurrentUser: userId == currentUserId,
-                contestId: data["contestId"] as? String
+                contestId: data["contestId"] as? String,
+                completedAt: completedAt
             )
         }
 
-        return entries.sorted(by: leaderboardSort).enumerated().map { index, entry in
+        let currentEntryPerUser = Dictionary(grouping: entries, by: \.userId)
+            .compactMap { _, userEntries in
+                userEntries.sorted(by: preferredEntrySort).first
+            }
+
+        return currentEntryPerUser.sorted(by: leaderboardSort).enumerated().map { index, entry in
             LeaderboardEntry(
                 id: entry.id,
                 userId: entry.userId,
@@ -411,12 +431,32 @@ final class FirebaseContestBackend: ContestBackend {
                 fastingSeconds: entry.fastingSeconds,
                 status: entry.status,
                 isCurrentUser: entry.isCurrentUser,
-                contestId: entry.contestId
+                contestId: entry.contestId,
+                completedAt: entry.completedAt
             )
         }
     }
 
+    private func preferredEntrySort(_ lhs: LeaderboardEntry, _ rhs: LeaderboardEntry) -> Bool {
+        if lhs.status == .active, rhs.status != .active {
+            return true
+        }
+        if lhs.status != .active, rhs.status == .active {
+            return false
+        }
+        if lhs.status == .completed, rhs.status == .completed {
+            return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
+        }
+        return lhs.fastingSeconds > rhs.fastingSeconds
+    }
+
     private func leaderboardSort(_ lhs: LeaderboardEntry, _ rhs: LeaderboardEntry) -> Bool {
+        if lhs.status == .active, rhs.status == .completed {
+            return false
+        }
+        if lhs.status == .completed, rhs.status == .active {
+            return true
+        }
         return lhs.fastingSeconds > rhs.fastingSeconds
     }
 

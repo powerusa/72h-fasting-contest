@@ -91,7 +91,7 @@ struct LeaderboardRow: View {
                         .font(.headline)
                     Text(entry.countryFlag)
                 }
-                Text(entry.fastingSeconds.compactHoursString)
+                Text(detailText)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -107,6 +107,13 @@ struct LeaderboardRow: View {
         }
         .padding(14)
         .background(entry.isCurrentUser ? Color.accentColor.opacity(0.14) : Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private var detailText: String {
+        guard entry.status == .completed, let completedAt = entry.completedAt else {
+            return entry.fastingSeconds.compactHoursString
+        }
+        return "Finished \(completedAt.formatted(date: .abbreviated, time: .shortened))"
     }
 }
 

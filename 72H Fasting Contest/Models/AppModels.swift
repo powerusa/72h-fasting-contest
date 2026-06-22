@@ -181,6 +181,7 @@ struct LeaderboardEntry: Identifiable, Equatable {
     let status: SessionStatus
     let isCurrentUser: Bool
     var contestId: String? = nil
+    var completedAt: Date? = nil
 }
 
 struct ContestParticipantRow: Identifiable, Equatable {
@@ -191,6 +192,7 @@ struct ContestParticipantRow: Identifiable, Equatable {
     let fastingSeconds: TimeInterval?
     let status: SessionStatus?
     let isCurrentUser: Bool
+    let completedAt: Date?
 }
 
 enum LeaderboardScope: Equatable {

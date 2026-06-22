@@ -191,7 +191,7 @@ private struct ContestParticipantRowView: View {
                     }
                 }
 
-                Text(participant.fastingSeconds?.compactHoursString ?? "Joined")
+                Text(detailText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -210,5 +210,12 @@ private struct ContestParticipantRowView: View {
         }
         .padding(10)
         .background(Color(.tertiarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var detailText: String {
+        guard participant.status == .completed, let completedAt = participant.completedAt else {
+            return participant.fastingSeconds?.compactHoursString ?? "Joined"
+        }
+        return "Finished \(completedAt.formatted(date: .abbreviated, time: .shortened))"
     }
 }
