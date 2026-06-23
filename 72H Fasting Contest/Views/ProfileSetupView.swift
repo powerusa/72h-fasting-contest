@@ -68,12 +68,18 @@ struct ProfileSetupView: View {
                             )
                         }
                     }
-                    .opacity(acceptsLeaderboardDataSharing ? 1 : 0.45)
-                    .disabled(!acceptsLeaderboardDataSharing)
                 }
                 .listRowBackground(Color.clear)
             }
             .navigationTitle("Set Up Profile")
+            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
     }
 }
