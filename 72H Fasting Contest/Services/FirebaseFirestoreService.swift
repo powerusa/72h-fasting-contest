@@ -476,13 +476,23 @@ final class FirebaseContestBackend: ContestBackend {
     }
 
     private func leaderboardSort(_ lhs: LeaderboardEntry, _ rhs: LeaderboardEntry) -> Bool {
-        if lhs.status == .active, rhs.status == .completed {
-            return false
+        let lhsPriority = leaderboardStatusPriority(lhs.status)
+        let rhsPriority = leaderboardStatusPriority(rhs.status)
+        if lhsPriority != rhsPriority {
+            return lhsPriority < rhsPriority
         }
-        if lhs.status == .completed, rhs.status == .active {
-            return true
+        if lhs.status == .completed, rhs.status == .completed {
+            return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
         }
         return lhs.fastingSeconds > rhs.fastingSeconds
+    }
+
+    private func leaderboardStatusPriority(_ status: SessionStatus) -> Int {
+        switch status {
+        case .active: return 0
+        case .completed: return 1
+        default: return 2
+        }
     }
 
     private func profile(from data: [String: Any], id: String) -> UserProfile {
