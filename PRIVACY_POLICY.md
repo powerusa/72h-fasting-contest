@@ -1,8 +1,8 @@
-# Privacy Policy for 72Hour Fasting Leaderbord
+# Privacy Policy for 72H Fasting Contest
 
 Last updated: June 19, 2026
 
-72Hour Fasting Leaderbord is a paid App Store app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
+72H Fasting Contest is an iOS app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
 
 This app is for tracking, motivation, and friendly competition only. It does not provide medical advice, diagnosis, or treatment.
 
@@ -26,7 +26,7 @@ The app uses Firebase Anonymous Authentication. This creates a random anonymous 
 
 ## Health and Medical Data
 
-72Hour Fasting Leaderbord does not use HealthKit.
+72H Fasting Contest does not use HealthKit.
 
 The app does not collect medical records, diagnoses, lab results, medication data, heart rate, weight, glucose, sleep, activity, or other health data from Apple Health.
 
@@ -46,7 +46,7 @@ Notifications are scheduled on your device. You can disable notifications in the
 
 ## Purchases
 
-72Hour Fasting Leaderbord is intended to be sold as a one-time paid app on the App Store.
+72H Fasting Contest may be distributed as a one-time paid app on the App Store.
 
 There are no subscriptions and no in-app purchases inside the app.
 
