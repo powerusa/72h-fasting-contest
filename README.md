@@ -152,7 +152,7 @@ See the full [Privacy Policy](PRIVACY_POLICY.md).
 - Source repository: <https://github.com/powerusa/72h-fasting-contest>
 - Demo video: <https://youtube.com/shorts/GZdXyhyRXrs>
 - Codex `/feedback` Session ID: provided with the contest submission
-- Devpost: pending submission
+- Devpost: <https://devpost.com/software/72hour-fasting-clock>
 
 ## License
 
