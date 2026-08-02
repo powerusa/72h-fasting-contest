@@ -1,6 +1,6 @@
 # 72H Fasting Contest
 
-A safety-conscious iPhone app for tracking a 72-hour fasting challenge, celebrating milestones, and joining friendly global or private contests.
+A safety-conscious iPhone and Android app for tracking a 72-hour fasting challenge, celebrating milestones, and joining friendly global or private contests.
 
 Built for the **OpenAI Build Week — Apps for Your Life** category.
 
@@ -37,7 +37,8 @@ Screenshots will be added before final judging materials are locked.
 
 72H Fasting Contest is a native SwiftUI application with a protocol-backed data layer that supports Firebase and a local/offline fallback.
 
-- **UI:** SwiftUI, native navigation and controls, SF Symbols
+- **iOS UI:** SwiftUI, native navigation and controls, SF Symbols
+- **Android UI:** Kotlin and Jetpack Compose with Material 3
 - **State:** `AppViewModel` shared through SwiftUI's environment
 - **Models:** Codable value types for profiles, sessions, contests, badges, and preferences
 - **Backend abstraction:** `ContestBackend` protocol with Firebase and offline implementations
@@ -45,7 +46,7 @@ Screenshots will be added before final judging materials are locked.
 - **Realtime data:** Firestore snapshot listeners for leaderboards
 - **Local data:** Codable snapshots stored on device for caching and offline use
 - **Notifications:** UserNotifications for local reminders and milestones
-- **Platform:** iOS 17 or later
+- **Platforms:** iOS 17 or later and Android 8.0 (API 26) or later
 - **Dependencies:** Firebase iOS SDK through Swift Package Manager
 
 ```text
@@ -94,6 +95,22 @@ xcodebuild \
   -configuration Debug \
   CODE_SIGNING_ALLOWED=NO \
   build
+```
+
+### Android setup and run
+
+The Android application lives in `androidApp/` and is registered in the same Firebase project as the iOS application. Both clients use Firebase Anonymous Authentication and the same `users`, `fastingSessions`, `contests`, and `badges` collections. That makes Android and iPhone participants visible in one live leaderboard and allows the same private contest invite code to be used on either platform.
+
+1. Open the repository root in Android Studio.
+2. Allow Gradle to sync.
+3. Select the `androidApp` run configuration and an Android 8.0+ device or emulator.
+4. Press **Run**.
+
+Command-line Android build:
+
+```sh
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+  ./gradlew :androidApp:assembleDebug
 ```
 
 ## Manual testing guide

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "32583653369",
+    "project_id": "h-fasting-contest",
+    "storage_bucket": "h-fasting-contest.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32583653369:android:f025b0b301524d73764f28",
+        "android_client_info": {
+          "package_name": "com.powerusa.fastingcontest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRZhvC2FtXqaTbov-2OHMWHAjAmhalUhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

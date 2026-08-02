@@ -8,3 +8,10 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 firebase-debug.log
+
+# Android / Gradle
+.gradle/
+local.properties
+**/build/
+*.iml
+.idea/
