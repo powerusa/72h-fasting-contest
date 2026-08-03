@@ -1,8 +1,8 @@
 # Privacy Policy for 72H Fasting Contest
 
-Last updated: June 19, 2026
+Last updated: August 3, 2026
 
-72H Fasting Contest is an iOS app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
+72H Fasting Contest is an Android and iOS app for tracking a 72-hour fasting challenge, motivation, friendly competition, badges, history, real-time leaderboards, reminders, and private contests.
 
 This app is for tracking, motivation, and friendly competition only. It does not provide medical advice, diagnosis, or treatment.
 
@@ -26,15 +26,15 @@ The app uses Firebase Anonymous Authentication. This creates a random anonymous 
 
 ## Health and Medical Data
 
-72H Fasting Contest does not use HealthKit.
+72H Fasting Contest does not use Apple HealthKit, Google Health Connect, or Google Fit.
 
-The app does not collect medical records, diagnoses, lab results, medication data, heart rate, weight, glucose, sleep, activity, or other health data from Apple Health.
+The app does not collect medical records, diagnoses, lab results, medication data, heart rate, weight, glucose, sleep, activity, or other health data from Apple Health, Health Connect, or Google Fit.
 
 The app does not make medical claims and does not promise weight loss or health outcomes.
 
 ## Local Storage
 
-App data is stored locally on your device using Apple-provided storage technologies. Local storage is used for cache, convenience, and offline display.
+App data is stored locally on your device using platform-provided storage technologies. Local storage is used for cache, convenience, and offline display.
 
 If you delete the app, locally stored app data may be deleted from your device.
 
@@ -42,11 +42,11 @@ If you delete the app, locally stored app data may be deleted from your device.
 
 If you allow notifications, the app may send local reminders such as hydration reminders, check-in reminders, and milestone notifications.
 
-Notifications are scheduled on your device. You can disable notifications in the app settings or in iOS Settings.
+Notifications are scheduled on your device. You can disable notifications in the app or device settings.
 
 ## Purchases
 
-72H Fasting Contest may be distributed as a one-time paid app on the App Store.
+72H Fasting Contest may be distributed through the Apple App Store or Google Play.
 
 There are no subscriptions and no in-app purchases inside the app.
 
@@ -90,4 +90,4 @@ We may update this privacy policy from time to time. Updates will be posted in t
 
 ## Contact
 
-For privacy questions, contact the app developer through the App Store listing support contact.
+For privacy questions, contact the app developer through the support contact shown on the Apple App Store or Google Play listing, or open an issue at https://github.com/powerusa/72h-fasting-contest/issues.
