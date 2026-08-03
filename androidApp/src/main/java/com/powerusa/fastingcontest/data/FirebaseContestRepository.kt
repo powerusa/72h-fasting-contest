@@ -144,11 +144,16 @@ class FirebaseContestRepository(
                     ?.sortedByDescending { it.createdAt } ?: emptyList())
             }
 
-        leaderboardListener = db.collection("fastingSessions").limit(200)
+        // Match iOS: observe the complete collection. An unordered limit can omit a
+        // newly-created Android session when the collection contains older records.
+        leaderboardListener = db.collection("fastingSessions")
             .addSnapshotListener { snap, error ->
                 if (error != null) return@addSnapshotListener onError(error)
                 onLeaderboard(snap?.documents?.mapNotNull { it.data?.toSession(it.id) }
-                    ?.filter { it.status == SessionStatus.ACTIVE || it.status == SessionStatus.COMPLETED }
+                    ?.filter {
+                        val effectiveStatus = it.leaderboardStatus()
+                        effectiveStatus == SessionStatus.ACTIVE || effectiveStatus == SessionStatus.COMPLETED
+                    }
                     ?: emptyList())
             }
 

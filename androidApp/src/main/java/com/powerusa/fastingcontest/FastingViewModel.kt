@@ -38,7 +38,23 @@ class FastingViewModel(application: Application) : AndroidViewModel(application)
                     }
                 },
                 onLeaderboard = { sessions ->
-                    val sorted = sessions.sortedByDescending { it.liveElapsed() }
+                    val now = System.currentTimeMillis()
+                    val currentEntryPerUser = sessions.groupBy { it.userId }.values.mapNotNull { userSessions ->
+                        userSessions.sortedWith(
+                            compareBy<FastingSession> { if (it.leaderboardStatus(now) == SessionStatus.ACTIVE) 0 else 1 }
+                                .thenByDescending { if (it.leaderboardStatus(now) == SessionStatus.COMPLETED) it.completedAtMillis() else it.liveElapsed(now) }
+                        ).firstOrNull()
+                    }
+                    val sorted = currentEntryPerUser.sortedWith(
+                        compareBy<FastingSession> { if (it.leaderboardStatus(now) == SessionStatus.ACTIVE) 0 else 1 }
+                            .thenComparator { left, right ->
+                                if (left.leaderboardStatus(now) == SessionStatus.ACTIVE) {
+                                    right.liveElapsed(now).compareTo(left.liveElapsed(now))
+                                } else {
+                                    right.completedAtMillis().compareTo(left.completedAtMillis())
+                                }
+                            }
+                    )
                     _state.update { state ->
                         state.copy(leaderboard = sorted.mapIndexed { index, session ->
                             LeaderboardEntry(session, index + 1, session.userId == uid)

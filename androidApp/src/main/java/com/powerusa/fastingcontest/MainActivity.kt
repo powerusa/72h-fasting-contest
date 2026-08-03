@@ -217,16 +217,23 @@ private fun MilestoneRow(hour: Int, reached: Boolean) {
 
 @Composable
 private fun LeaderboardScreen(state: AppState) {
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) { value = System.currentTimeMillis(); delay(1000) }
+    }
+    val currentEntry = state.leaderboard.firstOrNull { it.isCurrentUser }
     LazyColumn(Modifier.fillMaxSize().background(Background).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { ScreenHeader("Leaderboard", if (state.connected) "Live Firebase list • Android + iPhone" else "Connecting to Firebase…") }
+        if (state.activeSession != null && currentEntry == null) {
+            item { InfoCard("Syncing your active session", "Your current Android fast was saved and is being added to the live leaderboard.") }
+        }
         if (state.leaderboard.isEmpty()) item { InfoCard("No leaderboard entries", "The list will fill when someone starts a 72H fast.") }
         items(state.leaderboard, key = { it.session.id }) { entry ->
             Card(colors = CardDefaults.cardColors(containerColor = if (entry.isCurrentUser) Color(0xFFFFF0DE) else Color.White)) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("#${entry.rank}", fontWeight = FontWeight.Bold, modifier = Modifier.width(46.dp))
                     Box(Modifier.size(40.dp).background(parseColor(entry.session.avatarColor), CircleShape), contentAlignment = Alignment.Center) { Text(entry.session.countryFlag) }
-                    Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(entry.session.displayName, fontWeight = FontWeight.SemiBold); Text(entry.session.status.wireValue.replaceFirstChar { it.uppercase() }, color = Color.Gray) }
-                    Text(shortDuration(entry.session.liveElapsed()), fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(entry.session.displayName + if (entry.isCurrentUser) " (You)" else "", fontWeight = FontWeight.SemiBold); Text(entry.session.leaderboardStatus(now).wireValue.replaceFirstChar { it.uppercase() }, color = Color.Gray) }
+                    Text(shortDuration(entry.session.liveElapsed(now)), fontWeight = FontWeight.Bold)
                 }
             }
         }

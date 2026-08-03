@@ -37,6 +37,16 @@ data class FastingSession(
         SessionStatus.ACTIVE -> ((nowMillis - startTime.toDate().time) / 1000).coerceIn(0, CHALLENGE_SECONDS)
         else -> elapsedSeconds.coerceIn(0, CHALLENGE_SECONDS)
     }
+
+    fun leaderboardStatus(nowMillis: Long = System.currentTimeMillis()): SessionStatus = when {
+        status == SessionStatus.STOPPED -> SessionStatus.STOPPED
+        endTime != null || status == SessionStatus.COMPLETED -> SessionStatus.COMPLETED
+        status == SessionStatus.ACTIVE && liveElapsed(nowMillis) >= CHALLENGE_SECONDS -> SessionStatus.COMPLETED
+        else -> status
+    }
+
+    fun completedAtMillis(): Long = endTime?.toDate()?.time
+        ?: (startTime.toDate().time + CHALLENGE_SECONDS * 1000)
 }
 
 data class Contest(
