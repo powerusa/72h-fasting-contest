@@ -15,3 +15,7 @@ local.properties
 **/build/
 *.iml
 .idea/
+
+# Android release signing and local release artifacts
+release-signing/
+GooglePlayRelease/
