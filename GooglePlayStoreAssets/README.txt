@@ -19,6 +19,22 @@ Phone screenshots (upload in this order):
   phone-screenshots/05-history.jpg
   Each screenshot is a 1080 x 1920 JPEG with no transparency.
 
+7-inch tablet screenshots (upload in this order):
+  7-inch-tablet-screenshots/01-challenge.jpg
+  7-inch-tablet-screenshots/02-leaderboard.jpg
+  7-inch-tablet-screenshots/03-contests.jpg
+  7-inch-tablet-screenshots/04-stats.jpg
+  7-inch-tablet-screenshots/05-history.jpg
+
+10-inch tablet screenshots (upload in this order):
+  10-inch-tablet-screenshots/01-challenge.jpg
+  10-inch-tablet-screenshots/02-leaderboard.jpg
+  10-inch-tablet-screenshots/03-contests.jpg
+  10-inch-tablet-screenshots/04-stats.jpg
+  10-inch-tablet-screenshots/05-history.jpg
+
+  Each tablet screenshot is a 1920 x 1080 JPEG with no transparency.
+
 Suggested alt text
 ==================
 
