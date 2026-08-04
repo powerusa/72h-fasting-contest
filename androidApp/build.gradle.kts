@@ -13,7 +13,7 @@ android {
         applicationId = "com.powerusa.fastingcontest"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
+        versionCode = 4
         versionName = "1.0"
     }
 
