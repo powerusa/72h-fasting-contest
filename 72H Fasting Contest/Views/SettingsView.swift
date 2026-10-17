@@ -80,14 +80,13 @@ struct SettingsView: View {
                 }
 
                 Section("App Rules") {
-                    Text("Only one active session is allowed. Start times cannot be edited after a challenge begins. The leaderboard shows only real users who are currently fasting.")
+                    Text("Only one active session is allowed. Start times cannot be edited after a challenge begins. The leaderboard shows active and completed fasting sessions.")
                         .font(.footnote)
                 }
 
                 Section("Support") {
                     Link("Privacy Policy", destination: URL(string: "https://github.com/powerusa/72h-fasting-contest/blob/main/PRIVACY_POLICY.md")!)
-                    Link("Terms Placeholder", destination: URL(string: "https://example.com/terms")!)
-                    Link("Contact Support Placeholder", destination: URL(string: "mailto:support@example.com")!)
+                    Link("Contact Support", destination: URL(string: "https://github.com/powerusa/72h-fasting-contest/issues")!)
                 }
             }
             .navigationTitle("Settings")

@@ -18,6 +18,9 @@ final class AppViewModel: ObservableObject {
     @Published var notificationPreferences = NotificationPreferences.default
     @Published var celebrationMilestone: Milestone?
     @Published var errorMessage: String?
+    @Published private(set) var isUpdatingSession = false
+    @Published private(set) var globalCurrentRank = 0
+    @Published private(set) var contestLeaderboards: [String: [LeaderboardEntry]] = [:]
     @Published var firebaseDebugInfo = FirebaseDebugInfo()
 
     private let store = PersistenceStore()
@@ -26,6 +29,13 @@ final class AppViewModel: ObservableObject {
     private let notificationManager = NotificationManager()
     private var reachedMilestones: Set<Int> = []
     private var leaderboardListener: BackendListener?
+    private var statsLeaderboardListener: BackendListener?
+    private var contestListeners: [String: BackendListener] = [:]
+    private var contestGenerations: [String: UUID] = [:]
+    private var nextCompletionAttempt = Date.distantPast
+    private var lastSnapshotSave = Date.distantPast
+    private var hasBootstrapped = false
+    private var leaderboardGeneration = UUID()
     private var leaderboardScope: LeaderboardScope = .global
     private var fastingSessionsLoadedFromFirestore = 0
     private var lastLeaderboardListenerError: String?
@@ -52,25 +62,12 @@ final class AppViewModel: ObservableObject {
     }
 
     var stats: UserStats {
-        let completed = history.filter { $0.status == .completed }
-        let best = history.map(\.elapsedSeconds).max() ?? activeSession?.elapsedSeconds ?? 0
-        let total = history.map(\.elapsedSeconds).reduce(0, +) + (activeSession?.elapsedSeconds ?? 0)
-        let currentRank = leaderboard.first(where: \.isCurrentUser)?.rank ?? 0
-        let bestRank = min(history.compactMap(\.rank).min() ?? currentRank, currentRank == 0 ? Int.max : currentRank)
-        let streak = completedSuffixCount(in: history)
-        return UserStats(
-            completedChallenges: completed.count,
-            bestFastingSeconds: best,
-            totalFastingSeconds: total,
-            currentRank: currentRank,
-            bestRank: bestRank == Int.max ? 0 : bestRank,
-            currentStreak: streak,
-            longestStreak: max(streak, completed.count),
-            badgesUnlocked: unlockedBadges.count
-        )
+        UserStats.calculate(history: history, activeSession: activeSession, currentRank: globalCurrentRank, badgesUnlocked: unlockedBadges.count)
     }
 
     func bootstrap() async {
+        guard !hasBootstrapped else { return }
+        hasBootstrapped = true
         let snapshot = await store.load()
         hasCompletedOnboarding = snapshot.hasCompletedOnboarding
         hasAcceptedSafety = snapshot.hasAcceptedSafety
@@ -99,8 +96,8 @@ final class AppViewModel: ObservableObject {
 
     func saveProfile(displayName: String, avatarColorHex: String, countryFlag: String, acceptsLeaderboardDataSharing: Bool) async {
         let cleanName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !cleanName.isEmpty else {
-            errorMessage = "Add a display name to continue."
+        guard !cleanName.isEmpty, cleanName.count <= 40 else {
+            errorMessage = "Use a display name between 1 and 40 characters."
             return
         }
         guard acceptsLeaderboardDataSharing else {
@@ -109,12 +106,11 @@ final class AppViewModel: ObservableObject {
         }
 
         let userId: String
-        if let currentUserId = backend.currentUserId {
-            userId = currentUserId
-        } else if backend.isRemoteBackend, let signedInId = try? await backend.signInAnonymouslyIfNeeded() {
-            userId = signedInId
-        } else {
-            userId = self.profile?.id ?? "anon-\(UUID().uuidString.prefix(8))"
+        do {
+            userId = try await backend.signInAnonymouslyIfNeeded()
+        } catch {
+            errorMessage = "Could not sign in to Firebase. \(friendlyMessage(for: error))"
+            return
         }
 
         let profile = UserProfile(
@@ -125,13 +121,14 @@ final class AppViewModel: ObservableObject {
             createdAt: self.profile?.createdAt ?? Date(),
             premiumUnlocked: true
         )
-        self.profile = profile
-        hasAcceptedLeaderboardDataSharing = true
         do {
             try await backend.saveUser(profile)
         } catch {
-            errorMessage = "Profile saved locally. Backend sync will retry later."
+            errorMessage = "Could not save your profile. \(friendlyMessage(for: error))"
+            return
         }
+        self.profile = profile
+        hasAcceptedLeaderboardDataSharing = true
         persist()
         startLeaderboardListener(scope: leaderboardScope)
         await refreshLeaderboard()
@@ -148,6 +145,9 @@ final class AppViewModel: ObservableObject {
     }
 
     func startFast(contestId: String? = nil) async {
+        guard !isUpdatingSession else { return }
+        isUpdatingSession = true
+        defer { isUpdatingSession = false }
         guard hasAcceptedLeaderboardDataSharing else {
             errorMessage = "Consent is required before uploading your fasting score to the global leaderboard."
             return
@@ -213,7 +213,14 @@ final class AppViewModel: ObservableObject {
     }
 
     func stopFast() async {
+        guard !isUpdatingSession else { return }
+        isUpdatingSession = true
+        defer { isUpdatingSession = false }
         guard let session = activeSession, session.status == .active else { return }
+        if Date().timeIntervalSince(session.startTime) >= Self.challengeDuration {
+            await finishSession(session)
+            return
+        }
         let stoppedSession: FastingSession
         do {
             stoppedSession = try await backend.stopFastingSession(session)
@@ -243,6 +250,7 @@ final class AppViewModel: ObservableObject {
         do {
             let contest = try await backend.createPrivateContest(title: title, creatorUserId: profile.id)
             contests.insert(contest, at: 0)
+            updateContestListeners()
             persist()
         } catch {
             errorMessage = friendlyMessage(for: error)
@@ -261,6 +269,7 @@ final class AppViewModel: ObservableObject {
             } else {
                 contests.insert(contest, at: 0)
             }
+            updateContestListeners()
             persist()
         } catch {
             errorMessage = friendlyMessage(for: error)
@@ -272,6 +281,7 @@ final class AppViewModel: ObservableObject {
         do {
             try await backend.removePrivateContest(contest, userId: profile.id)
             contests.removeAll { $0.id == contest.id }
+            updateContestListeners()
             persist()
         } catch {
             errorMessage = friendlyMessage(for: error)
@@ -296,57 +306,44 @@ final class AppViewModel: ObservableObject {
     }
 
     func contestParticipantRows(for contest: Contest) -> [ContestParticipantRow] {
-        let activeRows = leaderboard
-            .filter { contest.participantIds.contains($0.userId) }
-            .map { entry in
-                ContestParticipantRow(
-                    id: entry.userId,
-                    displayName: entry.displayName,
-                    avatarColorHex: entry.avatarColorHex,
-                    countryFlag: entry.countryFlag,
-                    fastingSeconds: entry.fastingSeconds,
-                    status: entry.status,
-                    isCurrentUser: entry.isCurrentUser,
-                    completedAt: entry.completedAt
-                )
-            }
+        ContestParticipantRow.rows(for: contest, entries: contestLeaderboards[contest.id] ?? [], profile: profile, activeSession: activeSession)
+    }
 
-        var rows = activeRows
-        var seenUserIds = Set(activeRows.map(\.id))
-
-        for userId in contest.participantIds where !seenUserIds.contains(userId) {
-            if let profile, profile.id == userId {
-                let currentActiveSessionApplies = activeSession?.status == .active || activeSession?.contestId == contest.id
-                rows.append(
-                    ContestParticipantRow(
-                        id: userId,
-                        displayName: profile.displayName,
-                        avatarColorHex: profile.avatarColorHex,
-                        countryFlag: profile.countryFlag,
-                        fastingSeconds: currentActiveSessionApplies ? activeSession?.elapsedSeconds : nil,
-                        status: currentActiveSessionApplies ? activeSession?.status : nil,
-                        isCurrentUser: true,
-                        completedAt: activeSession?.status == .completed ? activeSession?.endTime : nil
-                    )
-                )
-            } else {
-                rows.append(
-                    ContestParticipantRow(
-                        id: userId,
-                        displayName: "Participant",
-                        avatarColorHex: "#8E8E93",
-                        countryFlag: "🏁",
-                        fastingSeconds: nil,
-                        status: nil,
-                        isCurrentUser: false,
-                        completedAt: nil
-                    )
-                )
-            }
-            seenUserIds.insert(userId)
+    func refreshContests() async {
+        guard backend.isRemoteBackend, let userId = backend.currentUserId else { return }
+        do {
+            contests = try await backend.fetchUserContests(userId: userId)
+            updateContestListeners()
+            persist()
+        } catch {
+            errorMessage = friendlyMessage(for: error)
         }
+    }
 
-        return rows
+    private func updateContestListeners() {
+        let ids = Set(contests.map(\.id))
+        for id in Array(contestListeners.keys) where !ids.contains(id) {
+            contestListeners.removeValue(forKey: id)?.remove()
+            contestGenerations.removeValue(forKey: id)
+            contestLeaderboards.removeValue(forKey: id)
+        }
+        guard let userId = backend.currentUserId else { return }
+        for id in ids where contestListeners[id] == nil {
+            let generation = UUID()
+            contestGenerations[id] = generation
+            contestListeners[id] = backend.listenToLeaderboard(scope: .privateContest(id), currentUserId: userId,
+                onChange: { [weak self] entries, _ in
+                    Task { @MainActor in
+                        guard let self, self.contestGenerations[id] == generation else { return }
+                        self.contestLeaderboards[id] = entries
+                    }
+                }, onError: { [weak self] error in
+                    Task { @MainActor in
+                        guard let self, self.contestGenerations[id] == generation else { return }
+                        self.errorMessage = self.friendlyMessage(for: error)
+                    }
+                })
+        }
     }
 
     func persist() {
@@ -368,33 +365,44 @@ final class AppViewModel: ObservableObject {
 
     private func recalculateActiveSession() {
         guard var session = activeSession, session.status == .active else { return }
-        let elapsed = Date().timeIntervalSince(session.startTime)
+        let elapsed = max(0, Date().timeIntervalSince(session.startTime))
         session.elapsedSeconds = min(elapsed, Self.challengeDuration)
         session.updatedAt = Date()
-
+        activeSession = session
         handleMilestones(for: session.elapsedSeconds)
+        if elapsed >= Self.challengeDuration, !isUpdatingSession, Date() >= nextCompletionAttempt {
+            isUpdatingSession = true
+            Task {
+                defer { isUpdatingSession = false }
+                await finishSession(session)
+            }
+        }
+        // The start time is persisted; live seconds can be recalculated after relaunch.
+        if Date().timeIntervalSince(lastSnapshotSave) >= 30 {
+            lastSnapshotSave = Date()
+            persist()
+        }
+    }
 
-        if elapsed >= Self.challengeDuration {
-            session.elapsedSeconds = Self.challengeDuration
-            session.status = .completed
-            session.endTime = session.startTime.addingTimeInterval(Self.challengeDuration)
-            session.rank = leaderboard.first(where: \.isCurrentUser)?.rank
+    private func finishSession(_ session: FastingSession) async {
+        do {
+            var completed = try await backend.completeFastingSession(session)
+            guard activeSession?.id == session.id else { return }
+            completed.rank = globalCurrentRank > 0 ? globalCurrentRank : nil
             activeSession = nil
-            history.insert(session, at: 0)
+            history.removeAll { $0.id == completed.id }
+            history.insert(completed, at: 0)
             notificationManager.cancelFastNotifications()
             unlock(.finisher72)
-            if history.filter({ $0.status == .completed }).count >= 3 {
-                unlock(.threeTimeFinisher)
-            }
+            if history.filter({ $0.status == .completed }).count >= 3 { unlock(.threeTimeFinisher) }
             haptic(.heavy)
-            Task {
-                _ = try? await backend.completeFastingSession(session)
-                await refreshLeaderboard()
-            }
-        } else {
-            activeSession = session
+            persist()
+            await refreshLeaderboard()
+        } catch {
+            // Keep the active session until the server confirms completion, then retry.
+            nextCompletionAttempt = Date().addingTimeInterval(30)
+            errorMessage = friendlyMessage(for: error)
         }
-        persist()
     }
 
     private func handleMilestones(for elapsed: TimeInterval) {
@@ -413,7 +421,7 @@ final class AppViewModel: ObservableObject {
         case 36: unlock(.halfway36)
         case 48: unlock(.strong48)
         case 60: unlock(.stretch60)
-        case 72: unlock(.finisher72)
+        case 72: break // Award only after completion is acknowledged by the backend.
         default: break
         }
     }
@@ -473,9 +481,15 @@ final class AppViewModel: ObservableObject {
                 reachedMilestones = []
                 print("Firebase migrated local active fast to Firestore:", migratedSession.id)
             }
-            history = remoteSessions.filter { $0.status != .active }
+            let localRanks = Dictionary(history.compactMap { session in session.rank.map { (session.id, $0) } }, uniquingKeysWith: min)
+            history = remoteSessions.filter { $0.status != .active }.map { session in
+                var restored = session
+                restored.rank = restored.rank ?? localRanks[session.id]
+                return restored
+            }
             unlockedBadges = try await backend.fetchUserBadges(userId: userId)
             contests = try await backend.fetchUserContests(userId: userId)
+            updateContestListeners()
             recalculateActiveSession()
             startLeaderboardListener(scope: leaderboardScope)
             updateFirebaseDebugInfo()
@@ -489,6 +503,8 @@ final class AppViewModel: ObservableObject {
     }
 
     private func refreshLeaderboard() async {
+        // Remote rankings are owned by the scoped listener, including its clock refresh.
+        guard !backend.isRemoteBackend else { return }
         leaderboard = await backend.leaderboard(
             for: nil,
             currentUser: profile,
@@ -511,7 +527,13 @@ final class AppViewModel: ObservableObject {
     }
 
     private func startLeaderboardListener(scope: LeaderboardScope) {
+        statsLeaderboardListener?.remove()
+        statsLeaderboardListener = nil
+        leaderboardGeneration = UUID()
+        let generation = leaderboardGeneration
         leaderboardListener?.remove()
+        leaderboardListener = nil
+        leaderboard = []
         leaderboardListenerConnected = false
         lastLeaderboardListenerError = nil
         updateFirebaseDebugInfo()
@@ -521,7 +543,7 @@ final class AppViewModel: ObservableObject {
             Task { await refreshLeaderboard() }
             return
         }
-        guard let userId = profile?.id ?? backend.currentUserId else {
+        guard let userId = backend.currentUserId else {
             lastLeaderboardListenerError = "Firebase Auth uid is missing."
             updateFirebaseDebugInfo()
             Task { await refreshLeaderboard() }
@@ -533,27 +555,38 @@ final class AppViewModel: ObservableObject {
             currentUserId: userId,
             onChange: { [weak self] entries, loadedCount in
                 Task { @MainActor in
-                    self?.fastingSessionsLoadedFromFirestore = loadedCount
-                    self?.leaderboardListenerConnected = true
-                    self?.lastLeaderboardListenerError = nil
-                    self?.leaderboard = entries
+                    guard let self, self.leaderboardGeneration == generation else { return }
+                    self.fastingSessionsLoadedFromFirestore = loadedCount
+                    self.leaderboardListenerConnected = true
+                    self.lastLeaderboardListenerError = nil
+                    self.leaderboard = entries
+                    if scope == .global { self.globalCurrentRank = entries.first(where: \.isCurrentUser)?.rank ?? 0 }
                     if let rank = entries.first(where: \.isCurrentUser)?.rank, rank <= 10 {
-                        self?.unlock(.top10)
+                        self.unlock(.top10)
                     }
-                    self?.updateFirebaseDebugInfo()
+                    self.updateFirebaseDebugInfo()
                 }
             },
             onError: { [weak self] error in
                 Task { @MainActor in
-                    let message = self?.friendlyMessage(for: error) ?? error.localizedDescription
-                    self?.leaderboardListenerConnected = false
-                    self?.lastLeaderboardListenerError = message
-                    self?.errorMessage = message
-                    self?.updateFirebaseDebugInfo()
+                    guard let self, self.leaderboardGeneration == generation else { return }
+                    let message = self.friendlyMessage(for: error)
+                    self.leaderboardListenerConnected = false
+                    self.lastLeaderboardListenerError = message
+                    self.errorMessage = message
+                    self.updateFirebaseDebugInfo()
                 }
             }
         )
-        leaderboardListenerConnected = leaderboardListener != nil
+        if scope != .global {
+            statsLeaderboardListener = backend.listenToLeaderboard(scope: .global, currentUserId: userId,
+                onChange: { [weak self] entries, _ in
+                    Task { @MainActor in
+                        guard let self, self.leaderboardGeneration == generation else { return }
+                        self.globalCurrentRank = entries.first(where: \.isCurrentUser)?.rank ?? 0
+                    }
+                }, onError: { _ in })
+        }
         updateFirebaseDebugInfo()
     }
 
@@ -598,18 +631,6 @@ final class AppViewModel: ObservableObject {
             return "Firebase is preparing the leaderboard data. Try again in a moment."
         }
         return nsError.localizedDescription
-    }
-
-    private func completedSuffixCount(in sessions: [FastingSession]) -> Int {
-        var count = 0
-        for session in sessions {
-            if session.status == .completed {
-                count += 1
-            } else {
-                break
-            }
-        }
-        return count
     }
 
     private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {

@@ -324,3 +324,52 @@ extension Color {
         self.init(red: red, green: green, blue: blue)
     }
 }
+
+// Shared calculations kept independent of Firebase for deterministic regression tests.
+extension UserStats {
+    static func calculate(history: [FastingSession], activeSession: FastingSession?, currentRank: Int, badgesUnlocked: Int) -> UserStats {
+        let ordered = history.sorted { $0.startTime > $1.startTime }
+        let completed = ordered.filter { $0.status == .completed }
+        let durations = ordered.map(\.elapsedSeconds) + [activeSession?.elapsedSeconds ?? 0]
+        let ranks = (ordered.compactMap(\.rank) + [currentRank]).filter { $0 > 0 }
+        var run = 0
+        var longest = 0
+        for session in ordered {
+            run = session.status == .completed ? run + 1 : 0
+            longest = max(longest, run)
+        }
+        return UserStats(
+            completedChallenges: completed.count,
+            bestFastingSeconds: durations.max() ?? 0,
+            totalFastingSeconds: durations.reduce(0, +),
+            currentRank: currentRank,
+            bestRank: ranks.min() ?? 0,
+            currentStreak: ordered.prefix { $0.status == .completed }.count,
+            longestStreak: longest,
+            badgesUnlocked: badgesUnlocked
+        )
+    }
+}
+
+extension ContestParticipantRow {
+    static func rows(for contest: Contest, entries: [LeaderboardEntry], profile: UserProfile?, activeSession: FastingSession?) -> [ContestParticipantRow] {
+        var rows = entries.filter { $0.contestId == contest.id && contest.participantIds.contains($0.userId) }.map { entry in
+            ContestParticipantRow(id: entry.userId, displayName: entry.displayName, avatarColorHex: entry.avatarColorHex,
+                                  countryFlag: entry.countryFlag, fastingSeconds: entry.fastingSeconds, status: entry.status,
+                                  isCurrentUser: entry.isCurrentUser, completedAt: entry.completedAt)
+        }
+        var seen = Set(rows.map(\.id))
+        for userId in contest.participantIds where seen.insert(userId).inserted {
+            let isCurrentUser = profile?.id == userId
+            let session = isCurrentUser && activeSession?.contestId == contest.id ? activeSession : nil
+            rows.append(ContestParticipantRow(
+                id: userId, displayName: isCurrentUser ? profile?.displayName ?? "Participant" : "Participant",
+                avatarColorHex: isCurrentUser ? profile?.avatarColorHex ?? "#8E8E93" : "#8E8E93",
+                countryFlag: isCurrentUser ? profile?.countryFlag ?? "🏁" : "🏁",
+                fastingSeconds: session?.elapsedSeconds, status: session?.status, isCurrentUser: isCurrentUser,
+                completedAt: session?.status == .completed ? session?.endTime : nil
+            ))
+        }
+        return rows
+    }
+}

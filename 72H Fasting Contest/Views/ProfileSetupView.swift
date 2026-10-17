@@ -72,7 +72,7 @@ struct ProfileSetupView: View {
                 .listRowBackground(Color.clear)
             }
             .navigationTitle("Set Up Profile")
-            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
+            .alert("72Hour Fasting Leaderboard", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {

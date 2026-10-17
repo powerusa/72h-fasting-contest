@@ -19,3 +19,8 @@ local.properties
 # Android release signing and local release artifacts
 release-signing/
 GooglePlayRelease/
+
+# Local test dependencies and emulator output
+node_modules/
+*-debug.log
+.firebase/

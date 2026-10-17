@@ -68,6 +68,7 @@ struct StatusBadge: View {
 
     var body: some View {
         Label(status.rawValue, systemImage: status.symbolName)
+            .fixedSize(horizontal: true, vertical: false)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -89,6 +90,8 @@ struct LeaderboardRow: View {
                 HStack(spacing: 6) {
                     Text(entry.displayName)
                         .font(.headline)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text(entry.countryFlag)
                 }
                 Text(detailText)

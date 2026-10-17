@@ -1,0 +1,92 @@
+[
+  {
+    "file": "duo/01-challenge.png",
+    "width": 2007,
+    "height": 2853,
+    "sha256": "a82c26412bd964aefdff194292c40f45c6a7bcda807aabc9072c6f9b41cd1986"
+  },
+  {
+    "file": "duo/02-leaderboard.png",
+    "width": 2007,
+    "height": 2853,
+    "sha256": "f323335a50dc73d8036703671e203a043f4350c7cdef4ae3a7d639f855fd3d22"
+  },
+  {
+    "file": "duo/03-contests.png",
+    "width": 2007,
+    "height": 2853,
+    "sha256": "2f7ad36ea79ef46f1c53e86f19c651be8a8622a02cac1d178ce64765ed6c2c4f"
+  },
+  {
+    "file": "duo/04-stats.png",
+    "width": 2007,
+    "height": 2853,
+    "sha256": "05928b8a5354e7a30fac861729667dc7b006c08abfa67bfad02dea7d10938c0e"
+  },
+  {
+    "file": "duo/05-challenge-closed.png",
+    "width": 1398,
+    "height": 2034,
+    "sha256": "e7a8d89ea965b5ef32c4d8fd25258ef23102bd3aec8bdede695cfd918fee87e4"
+  },
+  {
+    "file": "duo/06-challenge-open-landscape.png",
+    "width": 2853,
+    "height": 2007,
+    "sha256": "838491822a4f038a1ba38f51bb2f5f3c42db6fb5be9021d1e005631307a65b01"
+  },
+  {
+    "file": "ipad/01-challenge.png",
+    "width": 2064,
+    "height": 2752,
+    "sha256": "a94e5efe076f9c73f2ad18787a201a7d331e273f8a4dbc4ef22532e596c64041"
+  },
+  {
+    "file": "ipad/02-leaderboard.png",
+    "width": 2064,
+    "height": 2752,
+    "sha256": "86fe6f350e64fee55bdb334e1cd36f2646e9c7b2467412a7774b72126c6efd6f"
+  },
+  {
+    "file": "ipad/03-contests.png",
+    "width": 2064,
+    "height": 2752,
+    "sha256": "0c69238a5134d40cf872c4b6ca8e5741374bd272069f98c5c276680c03c7b428"
+  },
+  {
+    "file": "ipad/04-stats.png",
+    "width": 2064,
+    "height": 2752,
+    "sha256": "c03c3b77d2e6b93aeb1ba41d76cd0b561f129a5acce72112e999a2ad4f0baa77"
+  },
+  {
+    "file": "ipad/05-onboarding.png",
+    "width": 2064,
+    "height": 2752,
+    "sha256": "62a39be2a3fd6f7b2c4722ccbf3d2904b432a329242c8585c779d88dd9d16226"
+  },
+  {
+    "file": "iphone/01-challenge.png",
+    "width": 1206,
+    "height": 2622,
+    "sha256": "6a0807511438d104d0b061774aadbca880e1941800ac1b895d46ca7f44ae27a7"
+  },
+  {
+    "file": "iphone/02-leaderboard.png",
+    "width": 1206,
+    "height": 2622,
+    "sha256": "75aa945638641463fe2141c89010e13cb9f8fe406b6c51102bf955e9cad9dfcf"
+  },
+  {
+    "file": "iphone/03-contests.png",
+    "width": 1206,
+    "height": 2622,
+    "sha256": "f4819bf9f26123d3e018efd513a9584f4e356f2fb4cb3c6f133f913bd284e963"
+  },
+  {
+    "file": "iphone/04-stats.png",
+    "width": 1206,
+    "height": 2622,
+    "sha256": "83933bd8ae04b4e1243c25dddbd570f93058dce23d1314c25b8ed3d9f440a84a"
+  }
+]

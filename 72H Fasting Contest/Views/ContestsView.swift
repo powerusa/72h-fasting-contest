@@ -24,6 +24,7 @@ struct ContestsView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Private Contests")
+            .task { await viewModel.refreshContests() }
             .sheet(item: $inviteSheet) { sheet in
                 switch sheet {
                 case .message(let contest):
@@ -48,7 +49,7 @@ struct ContestsView: View {
                     }
                 }
             }
-            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
+            .alert("72Hour Fasting Leaderboard", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {
@@ -192,12 +193,12 @@ struct ContestsView: View {
 
     private func inviteMessage(for contest: Contest) -> String {
         """
-        Join my 72Hour Fasting Leaderbord private contest.
+        Join my 72Hour Fasting Leaderboard private contest.
 
         Invite code: \(contest.contestCode)
 
         Open the app, go to Contests, enter the code under Join With Code, then tap Start Contest Fast in the contest card.
-        Download the app from the App Store: https://apps.apple.com/us/search?term=72Hour%20Fasting%20Leaderbord
+        Download the app from the App Store: https://apps.apple.com/us/search?term=72Hour%20Fasting%20Leaderboard
         """
     }
 

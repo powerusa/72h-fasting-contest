@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import FirebaseCore
 
 @main
@@ -18,6 +19,8 @@ struct FastingContestApp: App {
 }
 
 struct AppRootView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @EnvironmentObject private var viewModel: AppViewModel
 
     var body: some View {
@@ -29,6 +32,9 @@ struct AppRootView: View {
             } else {
                 RootTabView()
             }
+        }
+        .onReceive(timer) { _ in
+            if scenePhase == .active { viewModel.tick() }
         }
         .task {
             await viewModel.bootstrap()

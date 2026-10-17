@@ -4,12 +4,20 @@ import FirebaseFirestore
 
 final class FirebaseListenerToken: BackendListener {
     private let registration: ListenerRegistration
+    private let timer: Timer
 
-    init(_ registration: ListenerRegistration) {
+    init(_ registration: ListenerRegistration, timer: Timer) {
         self.registration = registration
+        self.timer = timer
+    }
+
+    deinit {
+        timer.invalidate()
+        registration.remove()
     }
 
     func remove() {
+        timer.invalidate()
         registration.remove()
     }
 }
@@ -57,7 +65,6 @@ final class FirebaseContestBackend: ContestBackend {
         guard FirebaseBootstrap.isConfigured else { throw BackendError.firebaseNotConfigured }
         let snapshot = try await db.collection(sessions)
             .whereField("userId", isEqualTo: userId)
-            .limit(to: 100)
             .getDocuments()
         return snapshot.documents
             .compactMap { session(from: $0.data(), id: $0.documentID) }
@@ -188,7 +195,7 @@ final class FirebaseContestBackend: ContestBackend {
     func stopFastingSession(_ session: FastingSession) async throws -> FastingSession {
         guard FirebaseBootstrap.isConfigured else { throw BackendError.noInternetForLeaderboard }
         var stopped = session
-        stopped.elapsedSeconds = Date().timeIntervalSince(session.startTime)
+        stopped.elapsedSeconds = min(max(0, Date().timeIntervalSince(session.startTime)), AppViewModel.challengeDuration - 1)
         stopped.endTime = Date()
         stopped.status = .stopped
         stopped.updatedAt = Date()
@@ -196,7 +203,7 @@ final class FirebaseContestBackend: ContestBackend {
         try await db.collection(sessions).document(session.id).updateData([
             "status": SessionStatus.stopped.firestoreValue,
             "elapsedSeconds": Int(stopped.elapsedSeconds),
-            "endTime": Timestamp(date: stopped.endTime ?? Date()),
+            "endTime": FieldValue.serverTimestamp(),
             "updatedAt": FieldValue.serverTimestamp()
         ])
         return stopped
@@ -229,7 +236,7 @@ final class FirebaseContestBackend: ContestBackend {
             id: doc.documentID,
             contestCode: code,
             creatorUserId: creatorUserId,
-            title: cleanTitle.isEmpty ? "Private 72H Contest" : cleanTitle,
+            title: cleanTitle.isEmpty ? "Private 72H Contest" : String(cleanTitle.prefix(80)),
             createdAt: now,
             participantIds: [creatorUserId],
             sessionIds: [],
@@ -361,26 +368,39 @@ final class FirebaseContestBackend: ContestBackend {
 
     private func listenToLeaderboardQuery(_ query: Query, queryName: String, currentUserId: String, startDate: Date? = nil, onChange: @escaping ([LeaderboardEntry], Int) -> Void, onError: @escaping (Error) -> Void) -> BackendListener? {
         print("Firestore leaderboard listener connected:", queryName)
-        let registration = query.addSnapshotListener { [weak self] snapshot, error in
+        var latestDocuments: [QueryDocumentSnapshot] = []
+        var hasSnapshot = false
+        let publish: () -> Void = { [weak self] in
+            guard let self, hasSnapshot else { return }
+            // Re-evaluate the week boundary and live elapsed times without network reads.
+            let boundary = startDate == nil ? nil : Date.startOfCurrentWeek()
+            let filtered = latestDocuments.filter { document in
+                guard let boundary else { return true }
+                guard let start = self.timestampDate(document.data()["startTime"]) else { return false }
+                return start >= boundary
+            }
+            onChange(self.rankedEntries(from: filtered, currentUserId: currentUserId), latestDocuments.count)
+        }
+        let timer = Timer(timeInterval: 1, repeats: true) { _ in publish() }
+        RunLoop.main.add(timer, forMode: .common)
+        let registration = query.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
             if let error {
-                print("Firestore leaderboard listener error:", error.localizedDescription)
+                hasSnapshot = false
                 onError(error)
                 return
             }
-            guard let self, let documents = snapshot?.documents else {
-                onChange([], 0)
-                return
+            guard let snapshot else { return }
+            latestDocuments = snapshot.documents
+            let wasConnected = hasSnapshot
+            // A cache-only snapshot is not proof of a working server connection.
+            hasSnapshot = !snapshot.metadata.isFromCache
+            if hasSnapshot {
+                publish()
+            } else if wasConnected {
+                onError(BackendError.noInternetForLeaderboard)
             }
-            let filteredDocuments = documents.filter { document in
-                guard let startDate else { return true }
-                guard let startTime = self.timestampDate(document.data()["startTime"]) else { return false }
-                return startTime >= startDate
-            }
-            print("Firestore leaderboard documents loaded:", documents.count)
-            onChange(self.rankedEntries(from: filteredDocuments, currentUserId: currentUserId), documents.count)
         }
-
-        return FirebaseListenerToken(registration)
+        return FirebaseListenerToken(registration, timer: timer)
     }
 
     private func uniqueContestCode() async throws -> String {
@@ -398,6 +418,7 @@ final class FirebaseContestBackend: ContestBackend {
     }
 
     private func rankedEntries(from documents: [QueryDocumentSnapshot], currentUserId: String?) -> [LeaderboardEntry] {
+        let now = Date()
         let entries = documents.compactMap { document -> LeaderboardEntry? in
             let data = document.data()
             guard let userId = data["userId"] as? String else { return nil }
@@ -406,9 +427,8 @@ final class FirebaseContestBackend: ContestBackend {
                 return nil
             }
             let storedStatus = SessionStatus(firestoreValue: data["status"] as? String ?? "")
-            print("Leaderboard session:", document.documentID, data["displayName"] as? String ?? "Contestant", storedStatus.firestoreValue)
             let storedElapsed = TimeInterval(data["elapsedSeconds"] as? Int ?? 0)
-            let liveElapsed = max(storedElapsed, Date().timeIntervalSince(startTime))
+            let liveElapsed = max(storedElapsed, now.timeIntervalSince(startTime))
             let effectiveStatus: SessionStatus
             let completedAt: Date?
 
@@ -470,9 +490,13 @@ final class FirebaseContestBackend: ContestBackend {
             return false
         }
         if lhs.status == .completed, rhs.status == .completed {
-            return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
+            if lhs.completedAt != rhs.completedAt {
+                return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
+            }
+            return lhs.id < rhs.id
         }
-        return lhs.fastingSeconds > rhs.fastingSeconds
+        if lhs.fastingSeconds != rhs.fastingSeconds { return lhs.fastingSeconds > rhs.fastingSeconds }
+        return lhs.id < rhs.id
     }
 
     private func leaderboardSort(_ lhs: LeaderboardEntry, _ rhs: LeaderboardEntry) -> Bool {
@@ -482,9 +506,13 @@ final class FirebaseContestBackend: ContestBackend {
             return lhsPriority < rhsPriority
         }
         if lhs.status == .completed, rhs.status == .completed {
-            return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
+            if lhs.completedAt != rhs.completedAt {
+                return (lhs.completedAt ?? .distantPast) > (rhs.completedAt ?? .distantPast)
+            }
+            return lhs.id < rhs.id
         }
-        return lhs.fastingSeconds > rhs.fastingSeconds
+        if lhs.fastingSeconds != rhs.fastingSeconds { return lhs.fastingSeconds > rhs.fastingSeconds }
+        return lhs.id < rhs.id
     }
 
     private func leaderboardStatusPriority(_ status: SessionStatus) -> Int {

@@ -1,3 +1,5 @@
+![72H Fasting Contest](docs/images/header.png)
+
 # 72H Fasting Contest
 
 A safety-conscious iPhone and Android app for tracking a 72-hour fasting challenge, celebrating milestones, and joining friendly global or private contests.
@@ -27,11 +29,14 @@ A 72-hour goal can feel abstract when viewed as one long countdown. This app bre
 
 ## Screenshots
 
-Screenshots will be added before final judging materials are locked.
+Native captures from the signed SwiftUI app on iPhone 18 Pro, iPad Pro 13-inch (M5), and iPhone Duo.
 
-| Challenge timer | Leaderboard | Private contests | History and stats |
-| --- | --- | --- | --- |
-| `docs/screenshots/challenge.png` | `docs/screenshots/leaderboard.png` | `docs/screenshots/contests.png` | `docs/screenshots/stats.png` |
+| iPhone 18 Pro | iPad Pro 13-inch | iPhone Duo |
+| --- | --- | --- |
+| ![iPhone challenge](docs/screenshots/iphone/01-challenge.png) | ![iPad challenge](docs/screenshots/ipad/01-challenge.png) | ![Duo challenge](docs/screenshots/duo/01-challenge.png) |
+| ![iPhone leaderboard](docs/screenshots/iphone/02-leaderboard.png) | ![iPad leaderboard](docs/screenshots/ipad/02-leaderboard.png) | ![Duo leaderboard](docs/screenshots/duo/02-leaderboard.png) |
+
+[Full screenshot gallery](docs/screenshots/README.md) · [Verification and remaining limits](docs/verification.md)
 
 ## Architecture and tech stack
 
@@ -93,9 +98,10 @@ xcodebuild \
   -scheme "72H Fasting Contest" \
   -sdk iphonesimulator \
   -configuration Debug \
-  CODE_SIGNING_ALLOWED=NO \
   build
 ```
+
+Keep simulator code signing enabled: Firebase Authentication uses the simulator keychain. If signing reports Finder metadata on build products in an iCloud-synced folder, use a derived-data directory under `/private/tmp`.
 
 ### Android setup and run
 
@@ -115,7 +121,7 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 
 ## Manual testing guide
 
-There is not yet an automated test target. Use this acceptance pass for the Build Week version:
+Run the [Swift regressions](tests/ios/README.md) and [Firestore emulator tests](tests/firestore/README.md), then use this acceptance pass for the Build Week version:
 
 1. Launch the app and complete onboarding; confirm the safety agreement is required.
 2. Create a display profile and review the leaderboard data-sharing disclosure.
@@ -128,6 +134,17 @@ There is not yet an automated test target. Use this acceptance pass for the Buil
 9. Inspect safety copy, light/dark mode, and a larger Dynamic Type size.
 
 Testing a real 72-hour completion requires elapsed server time; the Firestore rules intentionally reject early completion. Judges can evaluate the active/stopped flows, milestones, UI, history, contests, and leaderboard behavior without waiting 72 hours.
+
+## Automated regression checks
+
+```sh
+python3 tests/ios/run.py
+cd tests/firestore
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run emulator-test
+```
+
+The rules tests use a local demo project. Production rule deployment requires a separate authenticated Firebase operation. See [verification notes](docs/verification.md).
 
 ## How Codex and GPT-5.6 were used
 
@@ -161,7 +178,7 @@ See the full [Privacy Policy](PRIVACY_POLICY.md).
 - Online social features require Firebase and an internet connection.
 - Anonymous accounts may not be recoverable after app deletion unless Firebase preserves the installation identity.
 - A full completion cannot be accelerated for testing because server-side rules enforce 72 elapsed hours.
-- Automated unit and UI test targets have not yet been added.
+- Regression scripts cover iOS models/rankings and Firestore rules. An Xcode UI test target has not yet been added.
 
 ## Build Week submission
 

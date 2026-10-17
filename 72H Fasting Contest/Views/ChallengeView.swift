@@ -6,7 +6,6 @@ struct ChallengeView: View {
     @State private var showingSafety = false
     @State private var showingLeaderboard = false
     @State private var showingLeaderboardConsent = false
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationStack {
@@ -15,6 +14,7 @@ struct ChallengeView: View {
                     screenTitle
                     heroTimer
                     actionButtons
+                        .disabled(viewModel.isUpdatingSession)
                     milestoneGrid
                     rulesCard
                 }
@@ -30,9 +30,6 @@ struct ChallengeView: View {
                     }
                     .accessibilityLabel("Settings")
                 }
-            }
-            .onReceive(timer) { _ in
-                viewModel.tick()
             }
             .sheet(isPresented: $showingSafety) {
                 SafetyAgreementView()
@@ -51,7 +48,7 @@ struct ChallengeView: View {
             .navigationDestination(isPresented: $showingLeaderboard) {
                 LeaderboardView()
             }
-            .alert("72Hour Fasting Leaderbord", isPresented: Binding(
+            .alert("72Hour Fasting Leaderboard", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {
@@ -65,7 +62,7 @@ struct ChallengeView: View {
     private var screenTitle: some View {
         VStack(spacing: 2) {
             Text("72Hour Fasting")
-            Text("Leaderbord")
+            Text("Leaderboard")
         }
         .font(.system(size: 34, weight: .bold, design: .default))
         .lineLimit(1)
