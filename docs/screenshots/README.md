@@ -34,4 +34,4 @@ The iPhone uses its existing profile/session. iPad and Duo use local preview pro
 | Challenge Closed | 1398 × 2034 | <a href="duo/05-challenge-closed.png"><img src="duo/05-challenge-closed.png" alt="Challenge Closed" width="240"></a> |
 | Challenge Open Landscape | 2853 × 2007 | <a href="duo/06-challenge-open-landscape.png"><img src="duo/06-challenge-open-landscape.png" alt="Challenge Open Landscape" width="240"></a> |
 
-Duo includes the inner display in portrait and landscape, plus the outer display while folded. All files retain their native dimensions. See `manifest.json` for dimensions and SHA-256 hashes.
+Duo includes the inner display in portrait and landscape, plus the outer display while folded. All files retain their native dimensions and are encoded as opaque RGB PNGs for App Store Connect. See `manifest.json` for dimensions and SHA-256 hashes.

@@ -3,90 +3,90 @@
     "file": "duo/01-challenge.png",
     "width": 2007,
     "height": 2853,
-    "sha256": "a82c26412bd964aefdff194292c40f45c6a7bcda807aabc9072c6f9b41cd1986"
+    "sha256": "24e36c4dea2ed9884e9d4418ac5a7ef7da061ac929c6ffe170531df983926b3d"
   },
   {
     "file": "duo/02-leaderboard.png",
     "width": 2007,
     "height": 2853,
-    "sha256": "f323335a50dc73d8036703671e203a043f4350c7cdef4ae3a7d639f855fd3d22"
+    "sha256": "2408dc7ea2e86d3e3a10c02e76a7de1198801b40fa30030fc2d4fc7516187a5c"
   },
   {
     "file": "duo/03-contests.png",
     "width": 2007,
     "height": 2853,
-    "sha256": "2f7ad36ea79ef46f1c53e86f19c651be8a8622a02cac1d178ce64765ed6c2c4f"
+    "sha256": "4558f7c54361e43193d9bd31abb4595d8aeec8d4928974f96e7ba31bf6c4772d"
   },
   {
     "file": "duo/04-stats.png",
     "width": 2007,
     "height": 2853,
-    "sha256": "05928b8a5354e7a30fac861729667dc7b006c08abfa67bfad02dea7d10938c0e"
+    "sha256": "a2e1e46c6f57205d4f4f5a4d7cdfee7a1fa81ddd6b14827648c23edcf54580d7"
   },
   {
     "file": "duo/05-challenge-closed.png",
     "width": 1398,
     "height": 2034,
-    "sha256": "e7a8d89ea965b5ef32c4d8fd25258ef23102bd3aec8bdede695cfd918fee87e4"
+    "sha256": "7d026b4e045345fac51d8e92563187742bcb887848b07514db3621897337bf03"
   },
   {
     "file": "duo/06-challenge-open-landscape.png",
     "width": 2853,
     "height": 2007,
-    "sha256": "838491822a4f038a1ba38f51bb2f5f3c42db6fb5be9021d1e005631307a65b01"
+    "sha256": "d04a4b9c592fed15286d8ba30281ea9024fce340cad46c976b53e29c97712e4d"
   },
   {
     "file": "ipad/01-challenge.png",
     "width": 2064,
     "height": 2752,
-    "sha256": "a94e5efe076f9c73f2ad18787a201a7d331e273f8a4dbc4ef22532e596c64041"
+    "sha256": "110c992b48fd1ec4fdcb6fc71db2ae4b259c0130cfb675a1949e83e2bf8a5bee"
   },
   {
     "file": "ipad/02-leaderboard.png",
     "width": 2064,
     "height": 2752,
-    "sha256": "86fe6f350e64fee55bdb334e1cd36f2646e9c7b2467412a7774b72126c6efd6f"
+    "sha256": "517b432ddeeea611182250db83ef405d4c1ce68e90e47ec7f5efacfcba979b73"
   },
   {
     "file": "ipad/03-contests.png",
     "width": 2064,
     "height": 2752,
-    "sha256": "0c69238a5134d40cf872c4b6ca8e5741374bd272069f98c5c276680c03c7b428"
+    "sha256": "98aaa07b9ec9b73191c8f02bef8c7b95021f26679b8339e28954846f0f346348"
   },
   {
     "file": "ipad/04-stats.png",
     "width": 2064,
     "height": 2752,
-    "sha256": "c03c3b77d2e6b93aeb1ba41d76cd0b561f129a5acce72112e999a2ad4f0baa77"
+    "sha256": "a15db04f24b805d730826653afd35c770af506864cae6f440c04a2d371220688"
   },
   {
     "file": "ipad/05-onboarding.png",
     "width": 2064,
     "height": 2752,
-    "sha256": "62a39be2a3fd6f7b2c4722ccbf3d2904b432a329242c8585c779d88dd9d16226"
+    "sha256": "eda034617d8a0275a26298f9a4f1e1b0f0ebcfa6fbcaf8360e3a2b1423551437"
   },
   {
     "file": "iphone/01-challenge.png",
     "width": 1206,
     "height": 2622,
-    "sha256": "6a0807511438d104d0b061774aadbca880e1941800ac1b895d46ca7f44ae27a7"
+    "sha256": "7122aeb0eab5094f1ed8a6f9bcd6e10668a514c6a0f9318f10726d430f0a73b7"
   },
   {
     "file": "iphone/02-leaderboard.png",
     "width": 1206,
     "height": 2622,
-    "sha256": "75aa945638641463fe2141c89010e13cb9f8fe406b6c51102bf955e9cad9dfcf"
+    "sha256": "01fd5d92737761a81edcfcd053fb16413c838ca5803202714c3270a9bed70f4f"
   },
   {
     "file": "iphone/03-contests.png",
     "width": 1206,
     "height": 2622,
-    "sha256": "f4819bf9f26123d3e018efd513a9584f4e356f2fb4cb3c6f133f913bd284e963"
+    "sha256": "2b94187fab64c3a7e565f4541cdcf75a5a0cca5bae2bf525a974caba0041782f"
   },
   {
     "file": "iphone/04-stats.png",
     "width": 1206,
     "height": 2622,
-    "sha256": "83933bd8ae04b4e1243c25dddbd570f93058dce23d1314c25b8ed3d9f440a84a"
+    "sha256": "347585db6d92cac079d536f6ad7bddbc5a9b7d66cb2c880295a23b7f7f5d98d5"
   }
 ]

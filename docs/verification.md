@@ -30,3 +30,11 @@
 - “One active session” is checked in clients. Strict atomic enforcement across concurrent devices sharing one Firebase UID needs a server-side lock/transaction design.
 - Private contest documents remain readable by authenticated app users to support the current invite-code lookup. Their session results also participate in the disclosed global leaderboard; these contests are not confidential workspaces.
 - The leaderboard currently reads the complete session collection. Server-side aggregation/pagination is still needed if the dataset grows substantially.
+
+## Version 2.0 and App Store upload correction
+
+- iOS Debug/Release marketing version 2.0, build 12; Android version 2.0, code 6.
+- Signed simulator build confirms `CFBundleShortVersionString=2.0` and `CFBundleVersion=12`; Swift regressions pass.
+- Header exported as 3840 × 1646; universal Header/Search as 5244 × 2950; Search as 3840 × 2560.
+- All 15 native screenshot PNGs re-encoded without alpha and without resizing. Four additional large-iPhone exports use 1320 × 2868, scaled from the real iPhone captures with preserved proportions.
+- `scripts/validate-app-store-assets.py` passes for all 22 upload PNGs. Actual App Store ingestion/approval and the store's version metadata are separate operations.

@@ -2,6 +2,8 @@
 
 # 72H Fasting Contest
 
+**Version 2.0** · iOS build 12 · Android version code 6
+
 A safety-conscious iPhone and Android app for tracking a 72-hour fasting challenge, celebrating milestones, and joining friendly global or private contests.
 
 Built for the **OpenAI Build Week — Apps for Your Life** category.
@@ -26,6 +28,10 @@ A 72-hour goal can feel abstract when viewed as one long countdown. This app bre
 - Offline-friendly local persistence with Firebase sync for connected features.
 - Explicit consent before leaderboard profile and fasting-session data are uploaded.
 - No advertisements, tracking across apps, or third-party analytics SDKs.
+
+## App Store upload assets
+
+[Header and Search Results files with exact Apple dimensions](docs/app-store/README.md). Use these for App Store Connect; the GitHub banner above has a different aspect ratio. All 15 device screenshots are exported without an alpha channel.
 
 ## Screenshots
 
