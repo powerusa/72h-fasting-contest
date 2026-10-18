@@ -114,14 +114,14 @@ Keep simulator code signing enabled: Firebase Authentication uses the simulator 
 The Android application lives in `androidApp/` and is registered in the same Firebase project as the iOS application. Both clients use Firebase Anonymous Authentication and the same `users`, `fastingSessions`, `contests`, and `badges` collections. That makes Android and iPhone participants visible in one live leaderboard and allows the same private contest invite code to be used on either platform.
 
 1. Open the repository root in Android Studio.
-2. Allow Gradle to sync.
+2. If Android Studio asks for a Gradle JVM, choose **Use JVM 21** (or select JDK 21 in Gradle settings), then allow Gradle to sync. Gradle 8.13 in this project does not run with Java 25.
 3. Select the `androidApp` run configuration and an Android 8.0+ device or emulator.
 4. Press **Run**.
 
 Command-line Android build:
 
 ```sh
-JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+JAVA_HOME="$(/usr/libexec/java_home -v 21)" \
   ./gradlew :androidApp:assembleDebug
 ```
 

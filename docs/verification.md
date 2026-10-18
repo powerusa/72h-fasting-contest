@@ -25,7 +25,7 @@
 ## Limits and deployment
 
 - The changed Firestore rules still need authenticated deployment to `h-fasting-contest`. Updating GitHub alone does not deploy them.
-- Android was reviewed as source. This Mac has no Android SDK or Android emulator, so an APK/device check was not performed.
+- Android Debug APK build and launch verified October 18, 2026, using JDK 21, Android SDK 36 and the Medium Phone API 37.0 emulator. Installed version is 2.0 (code 6). Full Android user-flow testing has not been completed.
 - A real 72-hour completion was not awaited. Time boundary logic and security enforcement were tested using local fixtures.
 - “One active session” is checked in clients. Strict atomic enforcement across concurrent devices sharing one Firebase UID needs a server-side lock/transaction design.
 - Private contest documents remain readable by authenticated app users to support the current invite-code lookup. Their session results also participate in the disclosed global leaderboard; these contests are not confidential workspaces.
@@ -38,3 +38,10 @@
 - Header exported as 3840 × 1646; universal Header/Search as 5244 × 2950; Search as 3840 × 2560.
 - All 15 native screenshot PNGs re-encoded without alpha and without resizing. Four additional large-iPhone exports use 1320 × 2868, scaled from the real iPhone captures with preserved proportions.
 - `scripts/validate-app-store-assets.py` passes for all 22 upload PNGs. Actual App Store ingestion/approval and the store's version metadata are separate operations.
+
+## Android Studio launch — October 18, 2026
+
+- Selected JVM 21 for Gradle 8.13; the installed Studio runtime (Java 25) was incompatible.
+- `:androidApp:assembleDebug` passed with all 36 tasks executed.
+- Android Studio Run installed version 2.0 (6) and launched `MainActivity` on the Medium Phone API 37.0 emulator.
+- The emulator required a cold boot with software rendering to start reliably. No user data was wiped.
