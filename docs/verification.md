@@ -45,3 +45,10 @@
 - `:androidApp:assembleDebug` passed with all 36 tasks executed.
 - Android Studio Run installed version 2.0 (6) and launched `MainActivity` on the Medium Phone API 37.0 emulator.
 - The emulator required a cold boot with software rendering to start reliably. No user data was wiped.
+
+## Android 6.0 release preparation — October 18, 2026
+
+- Android version name 6.0, version code 7; package remains `com.powerusa.fastingcontest`, minimum SDK 26 and target SDK 36. iOS remains 2.0 (12).
+- `:androidApp:bundleRelease :androidApp:lintRelease` passed with JDK 21: 55 tasks executed; lint reported 0 errors and 18 warnings.
+- Generated release manifest confirms version 6.0 (7). `jarsigner -verify` confirms the bundle is unsigned because no release upload keystore is configured.
+- This bundle is not ready for Play upload. The original upload key was not found; the owner is checking the Play Console upload-key reset process. A replacement key must be registered by Google before it can be used for updates.

@@ -2,7 +2,7 @@
 
 # 72H Fasting Contest
 
-**Version 2.0** · iOS build 12 · Android version code 6
+**iOS 2.0** · build 12 · **Android 6.0** · version code 7
 
 A safety-conscious iPhone and Android app for tracking a 72-hour fasting challenge, celebrating milestones, and joining friendly global or private contests.
 
