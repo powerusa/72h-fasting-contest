@@ -50,5 +50,8 @@
 
 - Android version name 6.0, version code 7; package remains `com.powerusa.fastingcontest`, minimum SDK 26 and target SDK 36. iOS remains 2.0 (12).
 - `:androidApp:bundleRelease :androidApp:lintRelease` passed with JDK 21: 55 tasks executed; lint reported 0 errors and 18 warnings.
-- Generated release manifest confirms version 6.0 (7). `jarsigner -verify` confirms the bundle is unsigned because no release upload keystore is configured.
-- This bundle is not ready for Play upload. The original upload key was not found; the owner is checking the Play Console upload-key reset process. A replacement key must be registered by Google before it can be used for updates.
+- Generated release manifest confirms version 6.0 (7). The initial command-line bundle was unsigned; the owner subsequently generated a signed release bundle in Android Studio using a replacement upload key.
+- `jarsigner -verify` verified the signed bundle. Its manifest matches the verified 6.0 (7) build. The self-signed certificate and absence of a timestamp produced verifier warnings.
+- Signed bundle SHA-256: `97778be7007c7a285f3c035f9ce2436eec7043fdbd5109a491992cc477f13851`.
+- Replacement upload certificate SHA-256: `C4:BF:98:03:35:FB:83:F9:55:4C:3F:DE:A1:3D:06:28:56:D9:82:13:83:98:60:4F:22:AC:99:D2:EC:69:E2:5F`. The public PEM certificate was exported from the signed bundle for the reset request. Private signing material is not stored in Git.
+- The owner's Play Console screenshot reported that this replacement upload certificate becomes valid on October 20, 2026 at 14:59:44 UTC. That date has passed as of October 27; successful upload, review and publication have not been confirmed.
